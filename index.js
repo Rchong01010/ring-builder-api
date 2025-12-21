@@ -87,10 +87,28 @@ async function makeStullerRequest(endpoint, method = 'POST', body = null) {
 
 // Determine style from series number
 function getStyleFromSeries(series) {
-  if (CURATED_SERIES.solitaire.includes(series)) return 'Solitaire';
-  if (CURATED_SERIES.halo.includes(series)) return 'Halo';
-  if (CURATED_SERIES.hiddenHalo.includes(series)) return 'Hidden Halo';
-  if (CURATED_SERIES.threeStone.includes(series)) return 'Three Stone';
+  // Remove any trailing letters (like 'l' or 'h' from 140401l, 140309h)
+  const cleanSeries = series.replace(/[a-zA-Z]+$/, '');
+  
+  if (CURATED_SERIES.solitaire.some(s => s.replace(/[a-zA-Z]+$/, '') === cleanSeries)) return 'Solitaire';
+  if (CURATED_SERIES.halo.some(s => s.replace(/[a-zA-Z]+$/, '') === cleanSeries)) return 'Halo';
+  if (CURATED_SERIES.hiddenHalo.some(s => s.replace(/[a-zA-Z]+$/, '') === cleanSeries)) return 'Hidden Halo';
+  if (CURATED_SERIES.threeStone.some(s => s.replace(/[a-zA-Z]+$/, '') === cleanSeries)) return 'Three Stone';
+  
+  // Fallback: check GroupDescription
+  return null;
+}
+
+// Alternative: detect style from GroupDescription text
+function getStyleFromDescription(groupDesc) {
+  if (!groupDesc) return null;
+  const desc = groupDesc.toLowerCase();
+  
+  if (desc.includes('solitaire')) return 'Solitaire';
+  if (desc.includes('hidden halo')) return 'Hidden Halo';
+  if (desc.includes('halo')) return 'Halo';
+  if (desc.includes('three-stone') || desc.includes('three stone')) return 'Three Stone';
+  
   return null;
 }
 
@@ -141,9 +159,18 @@ function getMetalFromSku(sku) {
 // Transform Stuller product to our format
 function transformProduct(product) {
   const series = product.SKU ? product.SKU.split(':')[0] : null;
-  const style = getStyleFromSeries(series);
   
-  if (!style) return null;
+  // Try to get style from series list first, then from description
+  let style = getStyleFromSeries(series);
+  if (!style) {
+    style = getStyleFromDescription(product.GroupDescription);
+  }
+  
+  // If still no style, skip this product
+  if (!style) {
+    console.log(`Skipping product ${product.SKU} - no matching style. GroupDesc: ${product.GroupDescription}`);
+    return null;
+  }
   
   const centerShape = getCenterShape(product.Description);
   const metal = getMetalFromSku(product.SKU);
