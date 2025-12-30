@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Custom Ring Concierge | GABRIELLA AMOURA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #fff;
+      color: #1a1a1a;
+      line-height: 1.6;
+    }
+
+    /* Header */
+    .header {
+      padding: 20px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .logo {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 500;
+      letter-spacing: 3px;
+      color: #1a1a1a;
+      text-decoration: none;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 30px;
+    }
+
+    .nav-links a {
+      font-size: 0.8rem;
+      color: #1a1a1a;
+      text-decoration: none;
+      letter-spacing: 0.5px;
+      transition: opacity 0.3s;
+    }
+
+    .nav-links a:hover {
+      opacity: 0.6;
+    }
+
+    /* Hero */
+    .hero {
+      text-align: center;
+      padding: 70px 20px 50px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .hero h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.8rem;
+      font-weight: 400;
+      margin-bottom: 20px;
+    }
+
+    .hero p {
+      font-size: 1rem;
+      font-weight: 300;
+      color: #666;
+      line-height: 1.8;
+    }
+
+    /* Entry Points */
+    .entry-section {
+      max-width: 1000px;
+      margin: 0 auto 60px;
+      padding: 0 20px;
+    }
+
+    .entry-label {
+      text-align: center;
+      font-size: 0.75rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #999;
+      margin-bottom: 30px;
+    }
+
+    .entry-cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .entry-cards {
+        grid-template-columns: 1fr;
+        gap: 15px;
+      }
+    }
+
+    .entry-card {
+      border: 1px solid #e8e8e8;
+      padding: 40px 25px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: #fff;
+    }
+
+    .entry-card:hover {
+      border-color: #1a1a1a;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+
+    .entry-card.active {
+      border-color: #1a1a1a;
+      background: #fafafa;
+    }
+
+    .entry-icon {
+      width: 48px;
+      height: 48px;
+      margin: 0 auto 20px;
+      opacity: 0.7;
+    }
+
+    .entry-card h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.2rem;
+      font-weight: 400;
+      margin-bottom: 8px;
+    }
+
+    .entry-card p {
+      font-size: 0.8rem;
+      color: #888;
+      font-weight: 300;
+    }
+
+    /* Selection Panel */
+    .selection-panel {
+      display: none;
+      max-width: 1200px;
+      margin: 0 auto 60px;
+      padding: 0 20px;
+    }
+
+    .selection-panel.active {
+      display: block;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+    }
+
+    .panel-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.5rem;
+      font-weight: 400;
+    }
+
+    .back-btn {
+      font-size: 0.8rem;
+      color: #888;
+      text-decoration: underline;
+      cursor: pointer;
+      background: none;
+      border: none;
+      font-family: inherit;
+    }
+
+    /* Style/Shape Selection Grid */
+    .option-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+    }
+
+    @media (max-width: 900px) {
+      .option-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    .option-card {
+      border: 1px solid #e8e8e8;
+      padding: 30px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: #fff;
+    }
+
+    .option-card:hover {
+      border-color: #1a1a1a;
+    }
+
+    .option-card.selected {
+      border-color: #1a1a1a;
+      background: #f8f8f8;
+    }
+
+    .option-card h4 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.1rem;
+      font-weight: 400;
+      margin-bottom: 5px;
+    }
+
+    .option-card p {
+      font-size: 0.75rem;
+      color: #999;
+    }
+
+    .option-icon {
+      width: 60px;
+      height: 60px;
+      margin: 0 auto 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f5f5f5;
+      border-radius: 50%;
+    }
+
+    .option-icon svg {
+      width: 30px;
+      height: 30px;
+      opacity: 0.6;
+    }
+
+    /* Upload Panel */
+    .upload-box {
+      border: 2px dashed #e0e0e0;
+      border-radius: 8px;
+      padding: 60px 30px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: #fafafa;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    .upload-box:hover {
+      border-color: #1a1a1a;
+    }
+
+    .upload-box.dragover {
+      border-color: #1a1a1a;
+      background: #f0f0f0;
+    }
+
+    .upload-box input {
+      display: none;
+    }
+
+    .upload-box h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.2rem;
+      margin: 20px 0 10px;
+    }
+
+    .upload-box p {
+      font-size: 0.85rem;
+      color: #888;
+    }
+
+    /* Preview */
+    .preview-area {
+      display: none;
+      text-align: center;
+      max-width: 400px;
+      margin: 0 auto;
+    }
+
+    .preview-area.active {
+      display: block;
+    }
+
+    .preview-img {
+      max-width: 100%;
+      max-height: 300px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+
+    .analyze-btn {
+      padding: 14px 40px;
+      background: #1a1a1a;
+      color: white;
+      border: none;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 500;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .analyze-btn:hover {
+      background: #333;
+    }
+
+    .analyze-btn:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+
+    /* Results */
+    .results-section {
+      display: none;
+      max-width: 1200px;
+      margin: 0 auto 60px;
+      padding: 0 20px;
+    }
+
+    .results-section.active {
+      display: block;
+    }
+
+    .results-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .results-header h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.8rem;
+      font-weight: 400;
+      margin-bottom: 10px;
+    }
+
+    .results-header p {
+      font-size: 0.9rem;
+      color: #666;
+    }
+
+    .results-filters {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+    }
+
+    .filter-tag {
+      padding: 8px 16px;
+      background: #f5f5f5;
+      border: 1px solid #e0e0e0;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      color: #666;
+    }
+
+    .filter-tag.active {
+      background: #1a1a1a;
+      color: white;
+      border-color: #1a1a1a;
+    }
+
+    /* Ring Grid */
+    .ring-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 25px;
+    }
+
+    @media (max-width: 1000px) {
+      .ring-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    @media (max-width: 700px) {
+      .ring-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    .ring-card {
+      background: #fff;
+      border: 1px solid #eee;
+      transition: all 0.3s ease;
+    }
+
+    .ring-card:hover {
+      border-color: #1a1a1a;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+
+    .ring-image {
+      width: 100%;
+      aspect-ratio: 1;
+      background: linear-gradient(135deg, #f8f8f8 0%, #f0f0f0 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .ring-image svg {
+      width: 60px;
+      height: 60px;
+      opacity: 0.3;
+    }
+
+    .ring-style-badge {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: white;
+      padding: 4px 10px;
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #666;
+    }
+
+    .ring-info {
+      padding: 20px;
+    }
+
+    .ring-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 1rem;
+      font-weight: 400;
+      margin-bottom: 8px;
+    }
+
+    .ring-meta {
+      font-size: 0.75rem;
+      color: #888;
+      margin-bottom: 12px;
+    }
+
+    .ring-shapes {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-bottom: 15px;
+    }
+
+    .shape-tag {
+      font-size: 0.65rem;
+      padding: 3px 8px;
+      background: #f5f5f5;
+      border-radius: 3px;
+      color: #666;
+    }
+
+    .ring-cta {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      background: #1a1a1a;
+      color: white;
+      text-align: center;
+      text-decoration: none;
+      font-size: 0.75rem;
+      font-weight: 500;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      transition: background 0.3s;
+    }
+
+    .ring-cta:hover {
+      background: #333;
+    }
+
+    /* Loading */
+    .loading-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255,255,255,0.95);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+    }
+
+    .loading-overlay.active {
+      display: flex;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 2px solid #f0f0f0;
+      border-top-color: #1a1a1a;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 15px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* AI Result Banner */
+    .ai-result {
+      display: none;
+      background: #f8f8f8;
+      padding: 30px;
+      border-radius: 8px;
+      text-align: center;
+      max-width: 600px;
+      margin: 0 auto 40px;
+    }
+
+    .ai-result.active {
+      display: block;
+    }
+
+    .ai-result h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.4rem;
+      margin-bottom: 10px;
+    }
+
+    .ai-result p {
+      font-size: 0.9rem;
+      color: #666;
+      margin-bottom: 15px;
+    }
+
+    .ai-tags {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .ai-tag {
+      padding: 6px 14px;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 20px;
+      font-size: 0.8rem;
+    }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      padding: 50px 20px;
+      border-top: 1px solid #f0f0f0;
+      margin-top: 60px;
+    }
+
+    .footer h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.5rem;
+      font-weight: 400;
+      margin-bottom: 15px;
+    }
+
+    .footer p {
+      font-size: 0.9rem;
+      color: #666;
+      margin-bottom: 25px;
+    }
+
+    .footer-btn {
+      display: inline-block;
+      padding: 14px 35px;
+      background: #1a1a1a;
+      color: white;
+      text-decoration: none;
+      font-size: 0.8rem;
+      font-weight: 500;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .footer-btn:hover {
+      background: #333;
+    }
+
+    .footer-copy {
+      margin-top: 50px;
+      font-size: 0.75rem;
+      color: #999;
+    }
+
+    /* Mobile */
+    @media (max-width: 768px) {
+      .header {
+        padding: 15px 20px;
+        flex-direction: column;
+        gap: 15px;
+      }
+
+      .hero { padding: 50px 20px 30px; }
+      .hero h1 { font-size: 2rem; }
+
+      .entry-card { padding: 30px 20px; }
+
+      .option-card { padding: 20px 15px; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <a href="https://gabriellaamoura.com" class="logo">GABRIELLA AMOURA</a>
+    <nav class="nav-links">
+      <a href="https://gabriellaamoura.com">Home</a>
+      <a href="https://gabriellaamoura.com/collections">Shop</a>
+      <a href="https://gabriellaamoura.com/pages/contact-us">Contact</a>
+    </nav>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero">
+    <h1>Design Your Dream Ring</h1>
+    <p>Start your journey to the perfect engagement ring. Choose how you'd like to begin.</p>
+  </section>
+
+  <!-- Entry Points -->
+  <section class="entry-section" id="entry-section">
+    <p class="entry-label">Choose Your Starting Point</p>
+    <div class="entry-cards">
+      <!-- Style Entry -->
+      <div class="entry-card" data-entry="style">
+        <svg class="entry-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M12 2v4m0 12v4m10-10h-4M6 12H2m15.07-7.07l-2.83 2.83M9.76 14.24l-2.83 2.83m12.14 0l-2.83-2.83M9.76 9.76L6.93 6.93"/>
+        </svg>
+        <h3>Select Ring Style</h3>
+        <p>Solitaire, Halo, Hidden Halo, Three Stone</p>
+      </div>
+
+      <!-- Shape Entry -->
+      <div class="entry-card" data-entry="shape">
+        <svg class="entry-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <polygon points="12,2 22,8.5 22,15.5 12,22 2,15.5 2,8.5"/>
+        </svg>
+        <h3>Select Diamond Shape</h3>
+        <p>Round, Oval, Princess, Cushion & more</p>
+      </div>
+
+      <!-- Upload Entry -->
+      <div class="entry-card" data-entry="upload">
+        <svg class="entry-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="3" y="3" width="18" height="18" rx="2"/>
+          <circle cx="8.5" cy="8.5" r="1.5"/>
+          <path d="M21 15l-5-5L5 21"/>
+        </svg>
+        <h3>Upload Inspiration</h3>
+        <p>AI identifies style from your photo</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Style Selection Panel -->
+  <section class="selection-panel" id="style-panel">
+    <div class="panel-header">
+      <h2 class="panel-title">Select Your Ring Style</h2>
+      <button class="back-btn" onclick="showEntry()">← Back</button>
+    </div>
+    <div class="option-grid" id="style-options">
+      <!-- Populated by JS -->
+    </div>
+  </section>
+
+  <!-- Shape Selection Panel -->
+  <section class="selection-panel" id="shape-panel">
+    <div class="panel-header">
+      <h2 class="panel-title">Select Your Diamond Shape</h2>
+      <button class="back-btn" onclick="showEntry()">← Back</button>
+    </div>
+    <div class="option-grid" id="shape-options">
+      <!-- Populated by JS -->
+    </div>
+  </section>
+
+  <!-- Upload Panel -->
+  <section class="selection-panel" id="upload-panel">
+    <div class="panel-header">
+      <h2 class="panel-title">Upload Your Inspiration</h2>
+      <button class="back-btn" onclick="showEntry()">← Back</button>
+    </div>
+    
+    <div class="upload-box" id="upload-box">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity:0.5">
+        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+      </svg>
+      <h3>Drop your image here</h3>
+      <p>or click to browse</p>
+      <input type="file" id="file-input" accept="image/*">
+    </div>
+
+    <div class="preview-area" id="preview-area">
+      <img id="preview-img" class="preview-img" alt="Preview">
+      <br>
+      <button class="analyze-btn" id="analyze-btn">Identify Ring Style</button>
+      <br><br>
+      <button class="back-btn" onclick="resetUpload()">Choose different image</button>
+    </div>
+  </section>
+
+  <!-- Results Section -->
+  <section class="results-section" id="results-section">
+    <div class="results-header">
+      <button class="back-btn" onclick="showEntry()" style="margin-bottom:15px">← Start Over</button>
+      <h2 id="results-title">Your Curated Selection</h2>
+      <p id="results-subtitle">Rings matching your preferences</p>
+    </div>
+
+    <!-- AI Result Banner (shown after image analysis) -->
+    <div class="ai-result" id="ai-result">
+      <h3 id="ai-style">Halo Style Detected</h3>
+      <p id="ai-description">Based on your image, we identified similar rings from our collection.</p>
+      <div class="ai-tags" id="ai-tags"></div>
+    </div>
+
+    <div class="ring-grid" id="ring-grid">
+      <!-- Populated by JS -->
+    </div>
+  </section>
+
+  <!-- Loading -->
+  <div class="loading-overlay" id="loading">
+    <div class="spinner"></div>
+    <p>Analyzing your ring...</p>
+  </div>
+
+  <!-- Footer CTA -->
+  <footer class="footer">
+    <h3>Need Help Deciding?</h3>
+    <p>Our concierge team is here to guide you through every step.</p>
+    <a href="https://gabriellaamoura.com/pages/contact-us" class="footer-btn">Speak With Our Team</a>
+    <p class="footer-copy">© 2024 GABRIELLA AMOURA. Ethically crafted lab-grown diamonds.</p>
+  </footer>
+
+  <script>
+    const API_BASE = 'https://ring-builder-api.onrender.com';
+
+    // State
+    let currentStyle = null;
+    let currentShape = null;
+    let allRings = [];
+
+    // Style data
+    const STYLES = [
+      { name: 'Solitaire', description: 'Classic single stone elegance' },
+      { name: 'Halo', description: 'Brilliant surrounding sparkle' },
+      { name: 'Hidden Halo', description: 'Secret shimmer beneath' },
+      { name: 'Three Stone', description: 'Past, present, future' }
+    ];
+
+    // Shape data
+    const SHAPES = [
+      { name: 'Round', description: 'Timeless brilliance' },
+      { name: 'Oval', description: 'Elegant elongation' },
+      { name: 'Princess', description: 'Modern square cut' },
+      { name: 'Cushion', description: 'Soft romantic edges' },
+      { name: 'Emerald', description: 'Art deco sophistication' },
+      { name: 'Pear', description: 'Unique teardrop shape' },
+      { name: 'Marquise', description: 'Dramatic pointed ends' },
+      { name: 'Radiant', description: 'Brilliant rectangular' }
+    ];
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      renderStyleOptions();
+      renderShapeOptions();
+      setupEntryCards();
+      setupUpload();
+      fetchAllRings();
+    });
+
+    // Fetch all rings on load
+    async function fetchAllRings() {
+      try {
+        const res = await fetch(`${API_BASE}/api/rings`);
+        const data = await res.json();
+        allRings = data.rings || [];
+      } catch (e) {
+        console.error('Failed to load rings:', e);
+      }
+    }
+
+    // Render style options
+    function renderStyleOptions() {
+      const container = document.getElementById('style-options');
+      container.innerHTML = STYLES.map(s => `
+        <div class="option-card" data-style="${s.name}">
+          <div class="option-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="12" cy="12" r="8"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+          </div>
+          <h4>${s.name}</h4>
+          <p>${s.description}</p>
+        </div>
+      `).join('');
+
+      container.querySelectorAll('.option-card').forEach(card => {
+        card.addEventListener('click', () => selectStyle(card.dataset.style));
+      });
+    }
+
+    // Render shape options
+    function renderShapeOptions() {
+      const container = document.getElementById('shape-options');
+      container.innerHTML = SHAPES.map(s => `
+        <div class="option-card" data-shape="${s.name}">
+          <div class="option-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <polygon points="12,2 22,8.5 22,15.5 12,22 2,15.5 2,8.5"/>
+            </svg>
+          </div>
+          <h4>${s.name}</h4>
+          <p>${s.description}</p>
+        </div>
+      `).join('');
+
+      container.querySelectorAll('.option-card').forEach(card => {
+        card.addEventListener('click', () => selectShape(card.dataset.shape));
+      });
+    }
+
+    // Setup entry cards
+    function setupEntryCards() {
+      document.querySelectorAll('.entry-card').forEach(card => {
+        card.addEventListener('click', () => {
+          const entry = card.dataset.entry;
+          hideAll();
+          
+          if (entry === 'style') {
+            document.getElementById('style-panel').classList.add('active');
+          } else if (entry === 'shape') {
+            document.getElementById('shape-panel').classList.add('active');
+          } else if (entry === 'upload') {
+            document.getElementById('upload-panel').classList.add('active');
+          }
+        });
+      });
+    }
+
+    // Select style
+    function selectStyle(style) {
+      currentStyle = style;
+      currentShape = null;
+      showResults(`${style} Engagement Rings`, `${allRings.filter(r => r.style === style).length} beautiful settings`);
+    }
+
+    // Select shape
+    function selectShape(shape) {
+      currentShape = shape;
+      currentStyle = null;
+      showResults(`${shape} Cut Rings`, `Settings compatible with ${shape.toLowerCase()} diamonds`);
+    }
+
+    // Show results
+    function showResults(title, subtitle) {
+      hideAll();
+      document.getElementById('results-section').classList.add('active');
+      document.getElementById('results-title').textContent = title;
+      document.getElementById('results-subtitle').textContent = subtitle;
+      document.getElementById('ai-result').classList.remove('active');
+      
+      renderRings();
+    }
+
+    // Render rings
+    function renderRings() {
+      let filtered = allRings;
+
+      if (currentStyle) {
+        filtered = filtered.filter(r => r.style === currentStyle);
+      }
+
+      if (currentShape) {
+        filtered = filtered.filter(r => 
+          r.compatibleShapes.some(s => s.toLowerCase() === currentShape.toLowerCase())
+        );
+      }
+
+      const grid = document.getElementById('ring-grid');
+      
+      if (filtered.length === 0) {
+        grid.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:#888;">No rings found. Try a different selection.</p>';
+        return;
+      }
+
+      grid.innerHTML = filtered.map(ring => `
+        <div class="ring-card">
+          <div class="ring-image">
+            <span class="ring-style-badge">${ring.style}</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+              <circle cx="12" cy="12" r="8"/>
+              <circle cx="12" cy="12" r="4"/>
+              <circle cx="12" cy="12" r="1"/>
+            </svg>
+          </div>
+          <div class="ring-info">
+            <h3 class="ring-name">${ring.name}</h3>
+            <p class="ring-meta">${ring.metal}</p>
+            <div class="ring-shapes">
+              ${ring.compatibleShapes.slice(0,4).map(s => `<span class="shape-tag">${s}</span>`).join('')}
+            </div>
+            <a href="https://gabriellaamoura.com/pages/contact-us?ring=${ring.seriesId}" class="ring-cta">Request Quote</a>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Upload handling
+    function setupUpload() {
+      const uploadBox = document.getElementById('upload-box');
+      const fileInput = document.getElementById('file-input');
+      const previewArea = document.getElementById('preview-area');
+      const previewImg = document.getElementById('preview-img');
+      const analyzeBtn = document.getElementById('analyze-btn');
+
+      uploadBox.addEventListener('click', () => fileInput.click());
+      
+      uploadBox.addEventListener('dragover', e => {
+        e.preventDefault();
+        uploadBox.classList.add('dragover');
+      });
+
+      uploadBox.addEventListener('dragleave', () => {
+        uploadBox.classList.remove('dragover');
+      });
+
+      uploadBox.addEventListener('drop', e => {
+        e.preventDefault();
+        uploadBox.classList.remove('dragover');
+        handleFile(e.dataTransfer.files[0]);
+      });
+
+      fileInput.addEventListener('change', e => {
+        handleFile(e.target.files[0]);
+      });
+
+      analyzeBtn.addEventListener('click', analyzeImage);
+    }
+
+    let currentImageData = null;
+
+    function handleFile(file) {
+      if (!file || !file.type.startsWith('image/')) return;
+      
+      const reader = new FileReader();
+      reader.onload = e => {
+        currentImageData = e.target.result;
+        document.getElementById('preview-img').src = currentImageData;
+        document.getElementById('upload-box').style.display = 'none';
+        document.getElementById('preview-area').classList.add('active');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function resetUpload() {
+      currentImageData = null;
+      document.getElementById('file-input').value = '';
+      document.getElementById('upload-box').style.display = 'block';
+      document.getElementById('preview-area').classList.remove('active');
+    }
+
+    async function analyzeImage() {
+      if (!currentImageData) return;
+      
+      document.getElementById('loading').classList.add('active');
+      document.getElementById('analyze-btn').disabled = true;
+
+      try {
+        const res = await fetch(`${API_BASE}/api/analyze-ring`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image: currentImageData })
+        });
+
+        const data = await res.json();
+
+        if (data.success && data.analysis) {
+          showAIResults(data.analysis, data.matchingRings || []);
+        } else {
+          alert(data.error || 'Could not analyze image. Please try another.');
+        }
+      } catch (e) {
+        console.error(e);
+        alert('Error analyzing image. Please try again.');
+      } finally {
+        document.getElementById('loading').classList.remove('active');
+        document.getElementById('analyze-btn').disabled = false;
+      }
+    }
+
+    function showAIResults(analysis, matchingRings) {
+      hideAll();
+      
+      currentStyle = analysis.style !== 'Unknown' ? analysis.style : null;
+      currentShape = analysis.shape !== 'Unknown' ? analysis.shape : null;
+
+      document.getElementById('results-section').classList.add('active');
+      document.getElementById('results-title').textContent = 'Rings Matching Your Inspiration';
+      document.getElementById('results-subtitle').textContent = `${matchingRings.length} similar styles found`;
+
+      // Show AI result banner
+      const aiResult = document.getElementById('ai-result');
+      aiResult.classList.add('active');
+      document.getElementById('ai-style').textContent = 
+        analysis.style !== 'Unknown' ? `${analysis.style} Style Detected` : 'Style Analysis';
+      document.getElementById('ai-description').textContent = 
+        analysis.description || 'Based on your image, here are similar rings from our collection.';
+
+      // Tags
+      const tagsEl = document.getElementById('ai-tags');
+      tagsEl.innerHTML = '';
+      if (analysis.style !== 'Unknown') {
+        tagsEl.innerHTML += `<span class="ai-tag">${analysis.style}</span>`;
+      }
+      if (analysis.shape !== 'Unknown') {
+        tagsEl.innerHTML += `<span class="ai-tag">${analysis.shape} Cut</span>`;
+      }
+      if (analysis.metal !== 'Unknown') {
+        tagsEl.innerHTML += `<span class="ai-tag">${analysis.metal}</span>`;
+      }
+
+      // Use matching rings from API or filter locally
+      if (matchingRings.length > 0) {
+        allRings = matchingRings.concat(allRings.filter(r => !matchingRings.find(m => m.id === r.id)));
+      }
+      
+      renderRings();
+    }
+
+    // Navigation
+    function showEntry() {
+      hideAll();
+      document.getElementById('entry-section').style.display = 'block';
+      currentStyle = null;
+      currentShape = null;
+      resetUpload();
+    }
+
+    function hideAll() {
+      document.getElementById('entry-section').style.display = 'none';
+      document.getElementById('style-panel').classList.remove('active');
+      document.getElementById('shape-panel').classList.remove('active');
+      document.getElementById('upload-panel').classList.remove('active');
+      document.getElementById('results-section').classList.remove('active');
+    }
+  </script>
+</body>
+</html>
