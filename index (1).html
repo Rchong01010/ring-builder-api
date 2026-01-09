@@ -1,0 +1,1629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ring Builder | Gabriella Amoura</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    :root {
+      --bg: #FAF9F7;
+      --text: #1a1a1a;
+      --text-light: #777;
+      --accent: #9D8165;
+      --accent-hover: #7D6145;
+      --border: #E8E6E3;
+      --card-bg: #FFFFFF;
+      --gold-yellow: #D4AF37;
+      --gold-rose: #B76E79;
+      --gold-white: #E8E8E8;
+      --platinum: #E5E4E2;
+    }
+    
+    body {
+      font-family: 'Montserrat', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+    
+    /* Header */
+    .header {
+      padding: 24px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--card-bg);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    
+    .logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.4rem;
+      font-weight: 500;
+      letter-spacing: 3px;
+      color: var(--text);
+      text-transform: uppercase;
+    }
+    
+    .header-actions {
+      display: flex;
+      gap: 12px;
+    }
+    
+    .header-btn {
+      padding: 10px 20px;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 500;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-light);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .header-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    
+    .header-btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: white;
+    }
+    
+    /* Main Layout */
+    .main {
+      min-height: calc(100vh - 80px);
+      display: flex;
+      flex-direction: column;
+    }
+    
+    /* Progress Bar */
+    .progress-container {
+      background: var(--card-bg);
+      padding: 30px 40px;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .progress-steps {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+    
+    .progress-step {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .step-number {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 500;
+      border: 2px solid var(--border);
+      color: var(--text-light);
+      background: var(--card-bg);
+      transition: all 0.3s ease;
+    }
+    
+    .step-number.active {
+      border-color: var(--accent);
+      background: var(--accent);
+      color: white;
+    }
+    
+    .step-number.completed {
+      border-color: var(--accent);
+      background: var(--accent);
+      color: white;
+    }
+    
+    .step-label {
+      font-size: 0.75rem;
+      letter-spacing: 0.5px;
+      color: var(--text-light);
+      display: none;
+    }
+    
+    .progress-step.active .step-label {
+      color: var(--text);
+      font-weight: 500;
+    }
+    
+    .step-line {
+      width: 60px;
+      height: 2px;
+      background: var(--border);
+      margin: 0 8px;
+    }
+    
+    .step-line.completed {
+      background: var(--accent);
+    }
+    
+    @media (min-width: 768px) {
+      .step-label { display: block; }
+    }
+    
+    /* Content Area */
+    .content {
+      flex: 1;
+      padding: 60px 40px;
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    
+    .step-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2.4rem;
+      font-weight: 400;
+      text-align: center;
+      margin-bottom: 12px;
+    }
+    
+    .step-subtitle {
+      text-align: center;
+      color: var(--text-light);
+      font-size: 0.9rem;
+      margin-bottom: 50px;
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    
+    /* Style Cards - Step 1 */
+    .style-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    
+    .style-card {
+      background: var(--card-bg);
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      padding: 30px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-align: center;
+    }
+    
+    .style-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-4px);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.08);
+    }
+    
+    .style-card.selected {
+      border-color: var(--accent);
+      background: rgba(157, 129, 101, 0.03);
+    }
+    
+    .style-icon {
+      width: 120px;
+      height: 120px;
+      margin: 0 auto 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #f8f7f5 0%, #edecea 100%);
+      border-radius: 50%;
+    }
+    
+    .style-icon img {
+      width: 80%;
+      height: 80%;
+      object-fit: contain;
+    }
+    
+    .style-icon svg {
+      width: 50%;
+      height: 50%;
+      stroke: var(--accent);
+    }
+    
+    .style-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.4rem;
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+    
+    .style-description {
+      font-size: 0.8rem;
+      color: var(--text-light);
+      line-height: 1.5;
+    }
+    
+    .style-count {
+      font-size: 0.7rem;
+      color: var(--accent);
+      margin-top: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
+    /* Metal Options - Step 2 */
+    .metal-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    
+    .metal-card {
+      background: var(--card-bg);
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      padding: 30px 20px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-align: center;
+    }
+    
+    .metal-card:hover {
+      border-color: var(--accent);
+    }
+    
+    .metal-card.selected {
+      border-color: var(--accent);
+      background: rgba(157, 129, 101, 0.03);
+    }
+    
+    .metal-card.disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    
+    .metal-swatch {
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      margin: 0 auto 16px;
+      border: 3px solid white;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    
+    .metal-name {
+      font-size: 0.95rem;
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+    
+    .metal-price-hint {
+      font-size: 0.75rem;
+      color: var(--text-light);
+    }
+    
+    /* Shape Options - Step 3 */
+    .shape-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 20px;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+    
+    .shape-card {
+      background: var(--card-bg);
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      padding: 40px 20px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-align: center;
+    }
+    
+    .shape-card:hover {
+      border-color: var(--accent);
+    }
+    
+    .shape-card.selected {
+      border-color: var(--accent);
+      background: rgba(157, 129, 101, 0.03);
+    }
+    
+    .shape-card.disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    
+    .shape-icon {
+      width: 60px;
+      height: 60px;
+      margin: 0 auto 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .shape-icon svg {
+      width: 100%;
+      height: 100%;
+      stroke: var(--text);
+      fill: none;
+      stroke-width: 1.5;
+    }
+    
+    .shape-name {
+      font-size: 1rem;
+      font-weight: 500;
+    }
+    
+    /* Size Options - Step 4 */
+    .size-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+    
+    .size-card {
+      background: var(--card-bg);
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      padding: 20px 28px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-align: center;
+      min-width: 100px;
+    }
+    
+    .size-card:hover {
+      border-color: var(--accent);
+    }
+    
+    .size-card.selected {
+      border-color: var(--accent);
+      background: rgba(157, 129, 101, 0.03);
+    }
+    
+    .size-value {
+      font-size: 1.1rem;
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+    
+    .size-carat {
+      font-size: 0.7rem;
+      color: var(--text-light);
+    }
+    
+    /* Results - Step 5 */
+    .results-container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    
+    .result-card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.08);
+    }
+    
+    .result-image {
+      width: 100%;
+      aspect-ratio: 4/3;
+      background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .result-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .result-placeholder {
+      text-align: center;
+      color: var(--text-light);
+    }
+    
+    .result-placeholder svg {
+      width: 80px;
+      height: 80px;
+      opacity: 0.3;
+      margin-bottom: 16px;
+    }
+    
+    .result-info {
+      padding: 40px;
+    }
+    
+    .result-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+    
+    .result-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.8rem;
+      font-weight: 500;
+      margin-bottom: 20px;
+      line-height: 1.3;
+    }
+    
+    .result-specs {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin-bottom: 30px;
+      padding-bottom: 30px;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .spec-item {
+      text-align: left;
+    }
+    
+    .spec-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-light);
+      margin-bottom: 4px;
+    }
+    
+    .spec-value {
+      font-size: 0.95rem;
+      font-weight: 500;
+    }
+    
+    .result-price {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .price-label {
+      font-size: 0.75rem;
+      color: var(--text-light);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
+    .price-value {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2rem;
+      font-weight: 500;
+    }
+    
+    .result-note {
+      font-size: 0.75rem;
+      color: var(--text-light);
+      margin-top: 4px;
+    }
+    
+    .result-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 30px;
+    }
+    
+    .btn-primary {
+      flex: 1;
+      padding: 16px 32px;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 500;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .btn-primary:hover {
+      background: var(--accent-hover);
+    }
+    
+    .btn-secondary {
+      padding: 16px 24px;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 500;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .btn-secondary:hover {
+      border-color: var(--text);
+    }
+    
+    /* Alternative Matches */
+    .alternatives {
+      margin-top: 50px;
+    }
+    
+    .alternatives-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.4rem;
+      text-align: center;
+      margin-bottom: 24px;
+      color: var(--text-light);
+    }
+    
+    .alternatives-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+    }
+    
+    .alt-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .alt-card:hover {
+      border-color: var(--accent);
+    }
+    
+    .alt-name {
+      font-size: 0.85rem;
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+    
+    .alt-details {
+      font-size: 0.75rem;
+      color: var(--text-light);
+      margin-bottom: 8px;
+    }
+    
+    .alt-price {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--accent);
+    }
+    
+    /* Navigation Buttons */
+    .nav-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      margin-top: 50px;
+    }
+    
+    .nav-btn {
+      padding: 14px 36px;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 500;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .nav-btn.back {
+      background: transparent;
+      color: var(--text-light);
+      border: 1px solid var(--border);
+    }
+    
+    .nav-btn.back:hover {
+      border-color: var(--text);
+      color: var(--text);
+    }
+    
+    .nav-btn.next {
+      background: var(--accent);
+      color: white;
+      border: none;
+    }
+    
+    .nav-btn.next:hover {
+      background: var(--accent-hover);
+    }
+    
+    .nav-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    
+    /* AI Identifier */
+    .ai-container {
+      max-width: 700px;
+      margin: 0 auto;
+      padding: 60px 40px;
+    }
+    
+    .upload-zone {
+      border: 2px dashed var(--border);
+      border-radius: 12px;
+      padding: 80px 40px;
+      text-align: center;
+      background: var(--card-bg);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .upload-zone:hover {
+      border-color: var(--accent);
+    }
+    
+    .upload-zone.has-image {
+      padding: 24px;
+    }
+    
+    .upload-icon {
+      width: 60px;
+      height: 60px;
+      margin: 0 auto 24px;
+      opacity: 0.4;
+    }
+    
+    .upload-text {
+      font-size: 1.1rem;
+      margin-bottom: 8px;
+    }
+    
+    .upload-hint {
+      font-size: 0.85rem;
+      color: var(--text-light);
+    }
+    
+    .preview-image {
+      max-width: 100%;
+      max-height: 400px;
+      border-radius: 8px;
+    }
+    
+    .analyze-btn {
+      display: block;
+      width: 100%;
+      max-width: 280px;
+      margin: 30px auto 0;
+      padding: 16px 32px;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 500;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .analyze-btn:hover:not(:disabled) {
+      background: var(--accent-hover);
+    }
+    
+    .analyze-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    /* Loading */
+    .loading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      padding: 60px;
+      color: var(--text-light);
+    }
+    
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-light);
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+      .header {
+        padding: 16px 20px;
+      }
+      
+      .logo {
+        font-size: 1.1rem;
+        letter-spacing: 2px;
+      }
+      
+      .header-btn {
+        padding: 8px 12px;
+        font-size: 0.65rem;
+      }
+      
+      .content {
+        padding: 40px 20px;
+      }
+      
+      .step-title {
+        font-size: 1.8rem;
+      }
+      
+      .style-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .result-specs {
+        grid-template-columns: 1fr;
+      }
+      
+      .result-actions {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  
+  <script type="text/babel">
+    const { useState, useEffect, useMemo } = React;
+    
+    const API_BASE_URL = 'https://ring-builder-api.onrender.com';
+    
+    // =========================================================================
+    // Style definitions with descriptions
+    // =========================================================================
+    const STYLE_INFO = {
+      '6-Prong Solitaire': {
+        name: 'Classic Solitaire',
+        description: 'Timeless elegance with six prongs securing a brilliant center stone',
+        icon: 'solitaire'
+      },
+      '4-Prong Solitaire': {
+        name: 'Four Prong Solitaire', 
+        description: 'Clean, minimal design that maximizes stone visibility',
+        icon: 'solitaire'
+      },
+      'Bezel-Set': {
+        name: 'Bezel Set',
+        description: 'Modern and protective setting with metal surrounding the stone',
+        icon: 'bezel'
+      },
+      'Three Stone': {
+        name: 'Three Stone',
+        description: 'Symbolic trilogy representing past, present, and future',
+        icon: 'threestone'
+      },
+      'Accented Shank': {
+        name: 'Accented',
+        description: 'Added brilliance with diamonds along the band',
+        icon: 'accented'
+      },
+      'Sculptural': {
+        name: 'Sculptural',
+        description: 'Artistic, flowing designs with unique character',
+        icon: 'sculptural'
+      },
+      'Solitaire': {
+        name: 'Simple Solitaire',
+        description: 'Pure simplicity showcasing a single stunning stone',
+        icon: 'solitaire'
+      },
+      'Band': {
+        name: 'Band',
+        description: 'Elegant bands for wedding or stacking',
+        icon: 'band'
+      }
+    };
+    
+    // Metal colors for swatches
+    const METAL_COLORS = {
+      '14K White Gold': '#E8E8E8',
+      '14K Yellow Gold': '#D4AF37',
+      '14K Rose Gold': '#B76E79',
+      'Platinum': '#E5E4E2'
+    };
+    
+    // Approximate carat equivalents for mm sizes (round stones)
+    const MM_TO_CARAT = {
+      '4': '~0.25ct',
+      '4.1': '~0.25ct',
+      '4.4': '~0.33ct',
+      '4.5': '~0.33ct',
+      '5': '~0.50ct',
+      '5.2': '~0.50ct',
+      '5.4': '~0.50ct',
+      '5.5': '~0.50ct',
+      '5.7': '~0.66ct',
+      '5.8': '~0.66ct',
+      '6': '~0.75ct',
+      '6.2': '~0.85ct',
+      '6.5': '~1.00ct',
+      '6.6': '~1.00ct',
+      '7': '~1.25ct',
+      '7.3': '~1.50ct',
+      '7.4': '~1.50ct',
+      '7.5': '~1.50ct',
+      '7.7': '~1.75ct',
+      '7.8': '~2.00ct',
+      '8': '~2.00ct',
+      '8.5': '~2.50ct',
+      '8.6': '~2.50ct',
+      '9': '~2.75ct',
+      '9.5': '~3.00ct',
+      '10': '~3.50ct',
+      '10.2': '~3.75ct',
+      '10.6': '~4.00ct',
+      '11': '~4.50ct',
+      '11.4': '~5.00ct',
+      '11.75': '~5.50ct',
+      '12': '~6.00ct'
+    };
+    
+    const getCaratEstimate = (mm) => {
+      const size = mm.replace(' mm', '').split('-')[0];
+      return MM_TO_CARAT[size] || '';
+    };
+    
+    // =========================================================================
+    // Icon Components
+    // =========================================================================
+    const RingIcon = ({ type }) => {
+      if (type === 'solitaire') {
+        return (
+          <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="50" cy="35" r="18" />
+            <path d="M32 50 Q50 90 68 50" />
+            <ellipse cx="50" cy="85" rx="25" ry="8" />
+          </svg>
+        );
+      }
+      if (type === 'bezel') {
+        return (
+          <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="50" cy="35" r="18" />
+            <circle cx="50" cy="35" r="22" />
+            <path d="M28 50 Q50 90 72 50" />
+            <ellipse cx="50" cy="85" rx="25" ry="8" />
+          </svg>
+        );
+      }
+      if (type === 'threestone') {
+        return (
+          <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="50" cy="35" r="14" />
+            <circle cx="25" cy="42" r="10" />
+            <circle cx="75" cy="42" r="10" />
+            <path d="M15 52 Q50 90 85 52" />
+            <ellipse cx="50" cy="85" rx="25" ry="8" />
+          </svg>
+        );
+      }
+      if (type === 'accented') {
+        return (
+          <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="50" cy="35" r="16" />
+            <path d="M30 50 Q50 90 70 50" />
+            <circle cx="35" cy="55" r="3" />
+            <circle cx="42" cy="62" r="3" />
+            <circle cx="58" cy="62" r="3" />
+            <circle cx="65" cy="55" r="3" />
+            <ellipse cx="50" cy="85" rx="25" ry="8" />
+          </svg>
+        );
+      }
+      if (type === 'sculptural' || type === 'band') {
+        return (
+          <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M25 40 Q35 25 50 25 Q65 25 75 40" />
+            <path d="M25 40 Q35 55 50 55 Q65 55 75 40" />
+            <path d="M25 40 Q50 90 75 40" />
+            <ellipse cx="50" cy="85" rx="25" ry="8" />
+          </svg>
+        );
+      }
+      return (
+        <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="2">
+          <circle cx="50" cy="35" r="18" />
+          <path d="M32 50 Q50 90 68 50" />
+          <ellipse cx="50" cy="85" rx="25" ry="8" />
+        </svg>
+      );
+    };
+    
+    const ShapeIcon = ({ shape }) => {
+      if (shape === 'Round') {
+        return (
+          <svg viewBox="0 0 60 60">
+            <circle cx="30" cy="30" r="25" />
+          </svg>
+        );
+      }
+      if (shape === 'Square') {
+        return (
+          <svg viewBox="0 0 60 60">
+            <rect x="8" y="8" width="44" height="44" rx="4" />
+          </svg>
+        );
+      }
+      return null;
+    };
+    
+    // =========================================================================
+    // Step 1: Style Selection
+    // =========================================================================
+    const StyleStep = ({ rings, selected, onSelect }) => {
+      // Group rings by style and count
+      const styleGroups = useMemo(() => {
+        const groups = {};
+        rings.forEach(ring => {
+          const style = ring.style;
+          if (!groups[style]) {
+            groups[style] = { count: 0, rings: [] };
+          }
+          groups[style].count++;
+          groups[style].rings.push(ring);
+        });
+        return groups;
+      }, [rings]);
+      
+      // Sort styles by count (most options first), filter out low-count styles
+      const sortedStyles = Object.entries(styleGroups)
+        .filter(([_, data]) => data.count >= 3)
+        .sort((a, b) => b[1].count - a[1].count);
+      
+      return (
+        <div>
+          <h1 className="step-title">Choose Your Style</h1>
+          <p className="step-subtitle">Select the setting style that speaks to you</p>
+          
+          <div className="style-grid">
+            {sortedStyles.map(([style, data]) => {
+              const info = STYLE_INFO[style] || { name: style, description: '', icon: 'solitaire' };
+              return (
+                <div
+                  key={style}
+                  className={`style-card ${selected === style ? 'selected' : ''}`}
+                  onClick={() => onSelect(style)}
+                >
+                  <div className="style-icon">
+                    <RingIcon type={info.icon} />
+                  </div>
+                  <div className="style-name">{info.name}</div>
+                  <div className="style-description">{info.description}</div>
+                  <div className="style-count">{data.count} options</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      );
+    };
+    
+    // =========================================================================
+    // Step 2: Metal Selection
+    // =========================================================================
+    const MetalStep = ({ rings, selectedStyle, selected, onSelect }) => {
+      const filteredRings = useMemo(() => {
+        return rings.filter(r => r.style === selectedStyle);
+      }, [rings, selectedStyle]);
+      
+      const availableMetals = useMemo(() => {
+        const metals = {};
+        filteredRings.forEach(ring => {
+          if (!metals[ring.metal]) {
+            metals[ring.metal] = { count: 0, minPrice: Infinity, maxPrice: 0 };
+          }
+          metals[ring.metal].count++;
+          metals[ring.metal].minPrice = Math.min(metals[ring.metal].minPrice, ring.price);
+          metals[ring.metal].maxPrice = Math.max(metals[ring.metal].maxPrice, ring.price);
+        });
+        return metals;
+      }, [filteredRings]);
+      
+      const metalOrder = ['14K White Gold', '14K Yellow Gold', '14K Rose Gold', 'Platinum'];
+      
+      return (
+        <div>
+          <h1 className="step-title">Select Your Metal</h1>
+          <p className="step-subtitle">Choose the precious metal for your ring</p>
+          
+          <div className="metal-grid">
+            {metalOrder.map(metal => {
+              const data = availableMetals[metal];
+              const isAvailable = !!data;
+              
+              return (
+                <div
+                  key={metal}
+                  className={`metal-card ${selected === metal ? 'selected' : ''} ${!isAvailable ? 'disabled' : ''}`}
+                  onClick={() => isAvailable && onSelect(metal)}
+                >
+                  <div 
+                    className="metal-swatch"
+                    style={{ background: METAL_COLORS[metal] }}
+                  />
+                  <div className="metal-name">{metal}</div>
+                  {isAvailable ? (
+                    <div className="metal-price-hint">
+                      From ${Math.round(data.minPrice)}
+                    </div>
+                  ) : (
+                    <div className="metal-price-hint">Not available</div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      );
+    };
+    
+    // =========================================================================
+    // Step 3: Shape Selection
+    // =========================================================================
+    const ShapeStep = ({ rings, selectedStyle, selectedMetal, selected, onSelect }) => {
+      const filteredRings = useMemo(() => {
+        return rings.filter(r => r.style === selectedStyle && r.metal === selectedMetal);
+      }, [rings, selectedStyle, selectedMetal]);
+      
+      const availableShapes = useMemo(() => {
+        const shapes = {};
+        filteredRings.forEach(ring => {
+          if (!shapes[ring.shape]) {
+            shapes[ring.shape] = 0;
+          }
+          shapes[ring.shape]++;
+        });
+        return shapes;
+      }, [filteredRings]);
+      
+      const shapeOrder = ['Round', 'Square'];
+      
+      return (
+        <div>
+          <h1 className="step-title">Choose Stone Shape</h1>
+          <p className="step-subtitle">Select the shape for your center stone</p>
+          
+          <div className="shape-grid">
+            {shapeOrder.map(shape => {
+              const count = availableShapes[shape];
+              const isAvailable = count > 0;
+              
+              return (
+                <div
+                  key={shape}
+                  className={`shape-card ${selected === shape ? 'selected' : ''} ${!isAvailable ? 'disabled' : ''}`}
+                  onClick={() => isAvailable && onSelect(shape)}
+                >
+                  <div className="shape-icon">
+                    <ShapeIcon shape={shape} />
+                  </div>
+                  <div className="shape-name">{shape}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      );
+    };
+    
+    // =========================================================================
+    // Step 4: Size Selection
+    // =========================================================================
+    const SizeStep = ({ rings, selectedStyle, selectedMetal, selectedShape, selected, onSelect }) => {
+      const filteredRings = useMemo(() => {
+        return rings.filter(r => 
+          r.style === selectedStyle && 
+          r.metal === selectedMetal && 
+          r.shape === selectedShape
+        );
+      }, [rings, selectedStyle, selectedMetal, selectedShape]);
+      
+      const availableSizes = useMemo(() => {
+        const sizes = {};
+        filteredRings.forEach(ring => {
+          if (ring.stoneSize) {
+            sizes[ring.stoneSize] = ring;
+          }
+        });
+        // Sort by numeric value
+        return Object.entries(sizes).sort((a, b) => {
+          const aNum = parseFloat(a[0]);
+          const bNum = parseFloat(b[0]);
+          return aNum - bNum;
+        });
+      }, [filteredRings]);
+      
+      return (
+        <div>
+          <h1 className="step-title">Select Stone Size</h1>
+          <p className="step-subtitle">Choose the center stone size (approximate carat weight shown)</p>
+          
+          <div className="size-grid">
+            {availableSizes.map(([size, ring]) => (
+              <div
+                key={size}
+                className={`size-card ${selected === size ? 'selected' : ''}`}
+                onClick={() => onSelect(size)}
+              >
+                <div className="size-value">{size}</div>
+                <div className="size-carat">{getCaratEstimate(size)}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    };
+    
+    // =========================================================================
+    // Step 5: Results
+    // =========================================================================
+    const ResultStep = ({ rings, selections, onStartOver }) => {
+      const matchingRings = useMemo(() => {
+        return rings.filter(r =>
+          r.style === selections.style &&
+          r.metal === selections.metal &&
+          r.shape === selections.shape &&
+          r.stoneSize === selections.size
+        );
+      }, [rings, selections]);
+      
+      const primaryRing = matchingRings[0];
+      
+      // Get alternatives (same style, different options)
+      const alternatives = useMemo(() => {
+        return rings.filter(r =>
+          r.style === selections.style &&
+          r.id !== primaryRing?.id
+        ).slice(0, 4);
+      }, [rings, selections, primaryRing]);
+      
+      if (!primaryRing) {
+        return (
+          <div className="empty-state">
+            <p>No exact match found. Please try different options.</p>
+            <button className="nav-btn back" onClick={onStartOver}>Start Over</button>
+          </div>
+        );
+      }
+      
+      return (
+        <div className="results-container">
+          <h1 className="step-title">Your Perfect Ring</h1>
+          <p className="step-subtitle">Here's the ring that matches your selections</p>
+          
+          <div className="result-card">
+            <div className="result-image">
+              {primaryRing.image ? (
+                <img src={primaryRing.image} alt={primaryRing.name} />
+              ) : (
+                <div className="result-placeholder">
+                  <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="1.5">
+                    <circle cx="50" cy="35" r="18" />
+                    <path d="M32 50 Q50 90 68 50" />
+                    <ellipse cx="50" cy="85" rx="25" ry="8" />
+                  </svg>
+                  <div>Image available upon request</div>
+                </div>
+              )}
+            </div>
+            
+            <div className="result-info">
+              <div className="result-label">Your Selection</div>
+              <h2 className="result-name">{primaryRing.name}</h2>
+              
+              <div className="result-specs">
+                <div className="spec-item">
+                  <div className="spec-label">Style</div>
+                  <div className="spec-value">{STYLE_INFO[primaryRing.style]?.name || primaryRing.style}</div>
+                </div>
+                <div className="spec-item">
+                  <div className="spec-label">Metal</div>
+                  <div className="spec-value">{primaryRing.metal}</div>
+                </div>
+                <div className="spec-item">
+                  <div className="spec-label">Stone Shape</div>
+                  <div className="spec-value">{primaryRing.shape}</div>
+                </div>
+                <div className="spec-item">
+                  <div className="spec-label">Stone Size</div>
+                  <div className="spec-value">{primaryRing.stoneSize} {getCaratEstimate(primaryRing.stoneSize)}</div>
+                </div>
+              </div>
+              
+              <div className="result-price">
+                <div>
+                  <div className="price-label">Mounting Price</div>
+                  <div className="result-note">Stone not included</div>
+                </div>
+                <div className="price-value">{primaryRing.priceFormatted}</div>
+              </div>
+              
+              <div className="result-actions">
+                <button className="btn-primary">Inquire About This Ring</button>
+                <button className="btn-secondary" onClick={onStartOver}>Start Over</button>
+              </div>
+            </div>
+          </div>
+          
+          {alternatives.length > 0 && (
+            <div className="alternatives">
+              <h3 className="alternatives-title">You might also like</h3>
+              <div className="alternatives-grid">
+                {alternatives.map(ring => (
+                  <div key={ring.id} className="alt-card">
+                    <div className="alt-name">{ring.metal}</div>
+                    <div className="alt-details">{ring.shape} • {ring.stoneSize}</div>
+                    <div className="alt-price">{ring.priceFormatted}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    };
+    
+    // =========================================================================
+    // AI Identifier View
+    // =========================================================================
+    const AIIdentifier = ({ onMatch }) => {
+      const [image, setImage] = useState(null);
+      const [preview, setPreview] = useState(null);
+      const [analyzing, setAnalyzing] = useState(false);
+      const [results, setResults] = useState(null);
+      const [error, setError] = useState(null);
+      
+      const handleUpload = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          setImage(event.target.result);
+          setPreview(event.target.result);
+          setResults(null);
+          setError(null);
+        };
+        reader.readAsDataURL(file);
+      };
+      
+      const analyze = async () => {
+        if (!image) return;
+        setAnalyzing(true);
+        setError(null);
+        
+        try {
+          const response = await fetch(`${API_BASE_URL}/api/analyze-ring`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ image })
+          });
+          
+          const data = await response.json();
+          if (data.success) {
+            setResults(data);
+          } else {
+            setError(data.error || 'Analysis failed');
+          }
+        } catch (err) {
+          setError(err.message);
+        } finally {
+          setAnalyzing(false);
+        }
+      };
+      
+      return (
+        <div className="ai-container">
+          <h1 className="step-title">AI Ring Identifier</h1>
+          <p className="step-subtitle">Upload a photo of a ring and we'll find similar styles in our collection</p>
+          
+          <div 
+            className={`upload-zone ${preview ? 'has-image' : ''}`}
+            onClick={() => document.getElementById('ai-upload').click()}
+          >
+            <input
+              type="file"
+              id="ai-upload"
+              accept="image/*"
+              onChange={handleUpload}
+              style={{ display: 'none' }}
+            />
+            
+            {preview ? (
+              <img src={preview} alt="Uploaded ring" className="preview-image" />
+            ) : (
+              <>
+                <svg className="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path d="M12 16V4M12 4L8 8M12 4L16 8" />
+                  <path d="M2 17V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V17" />
+                </svg>
+                <p className="upload-text">Drop a ring image here or click to upload</p>
+                <p className="upload-hint">We'll analyze the style and find matches</p>
+              </>
+            )}
+          </div>
+          
+          {preview && (
+            <button className="analyze-btn" onClick={analyze} disabled={analyzing}>
+              {analyzing ? 'Analyzing...' : 'Find Similar Rings'}
+            </button>
+          )}
+          
+          {analyzing && (
+            <div className="loading">
+              <div className="spinner"></div>
+              <span>AI is analyzing your ring...</span>
+            </div>
+          )}
+          
+          {error && (
+            <div className="empty-state">
+              <p>Error: {error}</p>
+            </div>
+          )}
+          
+          {results && results.recommendations?.length > 0 && (
+            <div className="alternatives" style={{ marginTop: '40px' }}>
+              <h3 className="alternatives-title">
+                {results.matchCount} similar rings found
+              </h3>
+              <div className="alternatives-grid">
+                {results.recommendations.slice(0, 8).map(ring => (
+                  <div key={ring.id} className="alt-card">
+                    <div className="alt-name">{STYLE_INFO[ring.style]?.name || ring.style}</div>
+                    <div className="alt-details">{ring.metal} • {ring.shape}</div>
+                    <div className="alt-price">{ring.priceFormatted}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    };
+    
+    // =========================================================================
+    // Main App
+    // =========================================================================
+    const App = () => {
+      const [view, setView] = useState('builder'); // 'builder' or 'ai'
+      const [step, setStep] = useState(1);
+      const [rings, setRings] = useState([]);
+      const [loading, setLoading] = useState(true);
+      
+      const [selections, setSelections] = useState({
+        style: null,
+        metal: null,
+        shape: null,
+        size: null
+      });
+      
+      // Load rings
+      useEffect(() => {
+        fetch(`${API_BASE_URL}/api/rings`)
+          .then(res => res.json())
+          .then(data => {
+            setRings(data.data || []);
+            setLoading(false);
+          })
+          .catch(err => {
+            console.error('Failed to load rings:', err);
+            setLoading(false);
+          });
+      }, []);
+      
+      const updateSelection = (key, value) => {
+        setSelections(prev => ({ ...prev, [key]: value }));
+      };
+      
+      const canProceed = () => {
+        switch (step) {
+          case 1: return !!selections.style;
+          case 2: return !!selections.metal;
+          case 3: return !!selections.shape;
+          case 4: return !!selections.size;
+          default: return false;
+        }
+      };
+      
+      const nextStep = () => {
+        if (canProceed() && step < 5) setStep(step + 1);
+      };
+      
+      const prevStep = () => {
+        if (step > 1) setStep(step - 1);
+      };
+      
+      const startOver = () => {
+        setStep(1);
+        setSelections({ style: null, metal: null, shape: null, size: null });
+      };
+      
+      if (loading) {
+        return (
+          <div className="loading" style={{ height: '100vh' }}>
+            <div className="spinner"></div>
+            <span>Loading ring collection...</span>
+          </div>
+        );
+      }
+      
+      return (
+        <>
+          <header className="header">
+            <div className="logo">Gabriella Amoura</div>
+            <div className="header-actions">
+              <button
+                className={`header-btn ${view === 'builder' ? 'active' : ''}`}
+                onClick={() => { setView('builder'); startOver(); }}
+              >
+                Build Your Ring
+              </button>
+              <button
+                className={`header-btn ${view === 'ai' ? 'active' : ''}`}
+                onClick={() => setView('ai')}
+              >
+                AI Identifier
+              </button>
+            </div>
+          </header>
+          
+          {view === 'builder' ? (
+            <div className="main">
+              {/* Progress Bar */}
+              <div className="progress-container">
+                <div className="progress-steps">
+                  {[
+                    { num: 1, label: 'Style' },
+                    { num: 2, label: 'Metal' },
+                    { num: 3, label: 'Shape' },
+                    { num: 4, label: 'Size' },
+                    { num: 5, label: 'Review' }
+                  ].map((s, i) => (
+                    <React.Fragment key={s.num}>
+                      <div className={`progress-step ${step === s.num ? 'active' : ''}`}>
+                        <div className={`step-number ${step > s.num ? 'completed' : ''} ${step === s.num ? 'active' : ''}`}>
+                          {step > s.num ? '✓' : s.num}
+                        </div>
+                        <span className="step-label">{s.label}</span>
+                      </div>
+                      {i < 4 && <div className={`step-line ${step > s.num ? 'completed' : ''}`} />}
+                    </React.Fragment>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Content */}
+              <div className="content">
+                {step === 1 && (
+                  <StyleStep
+                    rings={rings}
+                    selected={selections.style}
+                    onSelect={(v) => updateSelection('style', v)}
+                  />
+                )}
+                
+                {step === 2 && (
+                  <MetalStep
+                    rings={rings}
+                    selectedStyle={selections.style}
+                    selected={selections.metal}
+                    onSelect={(v) => updateSelection('metal', v)}
+                  />
+                )}
+                
+                {step === 3 && (
+                  <ShapeStep
+                    rings={rings}
+                    selectedStyle={selections.style}
+                    selectedMetal={selections.metal}
+                    selected={selections.shape}
+                    onSelect={(v) => updateSelection('shape', v)}
+                  />
+                )}
+                
+                {step === 4 && (
+                  <SizeStep
+                    rings={rings}
+                    selectedStyle={selections.style}
+                    selectedMetal={selections.metal}
+                    selectedShape={selections.shape}
+                    selected={selections.size}
+                    onSelect={(v) => updateSelection('size', v)}
+                  />
+                )}
+                
+                {step === 5 && (
+                  <ResultStep
+                    rings={rings}
+                    selections={selections}
+                    onStartOver={startOver}
+                  />
+                )}
+                
+                {/* Navigation */}
+                {step < 5 && (
+                  <div className="nav-buttons">
+                    {step > 1 && (
+                      <button className="nav-btn back" onClick={prevStep}>
+                        Back
+                      </button>
+                    )}
+                    <button
+                      className="nav-btn next"
+                      onClick={nextStep}
+                      disabled={!canProceed()}
+                    >
+                      {step === 4 ? 'View Your Ring' : 'Continue'}
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            <AIIdentifier />
+          )}
+        </>
+      );
+    };
+    
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
