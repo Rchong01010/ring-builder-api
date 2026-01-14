@@ -1,0 +1,1462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ring Builder | Gabriella Amoura</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Nunito+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    :root {
+      --bg: #FAF8F5;
+      --bg-panel: #FFFFFF;
+      --bg-card: #F5F2ED;
+      --bg-card-hover: #EDE9E3;
+      --text: #2C2C2C;
+      --text-dim: #6B6B6B;
+      --gold: #C9A962;
+      --gold-bright: #D4B976;
+      --gold-dim: #A88F4F;
+      --gold-light: rgba(201, 169, 98, 0.15);
+      --radius: 16px;
+      --shadow: 0 4px 20px rgba(0,0,0,0.06);
+      --shadow-hover: 0 8px 30px rgba(0,0,0,0.1);
+    }
+    
+    @keyframes float { 0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)} }
+    @keyframes celebrate { 0%{transform:scale(1)}50%{transform:scale(1.03)}100%{transform:scale(1)} }
+    @keyframes slideUp { from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)} }
+    @keyframes shimmer { 0%{background-position:-200% 0}100%{background-position:200% 0} }
+    @keyframes bounce { 0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)} }
+    @keyframes achievementSlide { 0%{transform:translateX(120%);opacity:0}10%{transform:translateX(0);opacity:1}90%{transform:translateX(0);opacity:1}100%{transform:translateX(120%);opacity:0} }
+    @keyframes sparkle { 0%,100%{opacity:0;transform:scale(0)}50%{opacity:1;transform:scale(1)} }
+    @keyframes ringGlow { 0%,100%{filter:drop-shadow(0 8px 25px rgba(201,169,98,0.2))}50%{filter:drop-shadow(0 8px 40px rgba(201,169,98,0.4))} }
+    
+    html, body, #root { height: 100%; }
+    
+    body {
+      font-family: 'Nunito Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow-x: hidden;
+    }
+    
+    .app {
+      min-height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    /* Header */
+    .header {
+      padding: 16px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(201,169,98,0.15);
+      background: var(--bg-panel);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    
+    .logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.4rem;
+      font-weight: 400;
+      letter-spacing: 3px;
+      color: var(--text);
+      text-transform: uppercase;
+    }
+    
+    .logo span {
+      color: var(--gold);
+    }
+    
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    
+    /* XP Badge */
+    .xp-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dim) 100%);
+      color: white;
+      padding: 8px 16px;
+      border-radius: 30px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      box-shadow: 0 4px 15px rgba(201,169,98,0.3);
+    }
+    
+    .xp-icon {
+      font-size: 1rem;
+    }
+    
+    .xp-value {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.1rem;
+    }
+    
+    .progress {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .progress-track {
+      display: flex;
+      gap: 4px;
+    }
+    
+    .progress-segment {
+      width: 36px;
+      height: 4px;
+      background: rgba(201,169,98,0.2);
+      border-radius: 2px;
+      transition: all 0.4s ease;
+    }
+    
+    .progress-segment.active {
+      background: var(--gold);
+    }
+    
+    .progress-segment.done {
+      background: var(--gold-dim);
+    }
+    
+    .progress-text {
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-left: 12px;
+    }
+    
+    /* Main Layout */
+    .main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 420px;
+    }
+    
+    /* Preview Area */
+    .preview-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+      background: linear-gradient(180deg, rgba(201,169,98,0.03) 0%, rgba(245,242,237,0.5) 100%);
+      position: relative;
+    }
+    
+    .ring-stage {
+      position: relative;
+      width: 400px;
+      height: 400px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .ring-image {
+      max-width: 90%;
+      max-height: 90%;
+      object-fit: contain;
+      transition: all 0.4s ease;
+      filter: drop-shadow(0 8px 25px rgba(0,0,0,0.12));
+    }
+    
+    .ring-image.celebrating {
+      animation: celebrate 0.5s ease, ringGlow 1.5s ease;
+    }
+    
+    .ring-placeholder {
+      width: 200px;
+      height: 200px;
+      border: 2px dashed rgba(201,169,98,0.4);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-dim);
+      font-size: 0.9rem;
+      text-align: center;
+      padding: 20px;
+    }
+    
+    /* Sparkles */
+    .sparkles {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    
+    .sparkle {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      background: var(--gold);
+      clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+      opacity: 0;
+    }
+    
+    .sparkle.active {
+      animation: sparkle 1s ease-out forwards;
+    }
+    
+    .preview-info {
+      margin-top: 24px;
+      text-align: center;
+    }
+    
+    .preview-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.6rem;
+      font-weight: 500;
+      margin-bottom: 12px;
+      color: var(--text);
+    }
+    
+    .preview-tags {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    
+    .preview-tag {
+      font-size: 0.75rem;
+      color: var(--gold-dim);
+      background: var(--bg-panel);
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1px solid rgba(201,169,98,0.2);
+    }
+    
+    /* Config Panel */
+    .config-panel {
+      background: var(--bg-panel);
+      border-left: 1px solid rgba(201,169,98,0.15);
+      padding: 32px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .step-intro {
+      margin-bottom: 28px;
+      animation: slideUp 0.4s ease;
+    }
+    
+    .step-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.7rem;
+      color: var(--gold);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 10px;
+      background: var(--gold-light);
+      padding: 6px 12px;
+      border-radius: 20px;
+    }
+    
+    .step-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.8rem;
+      font-weight: 500;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+    
+    .step-desc {
+      font-size: 0.9rem;
+      color: var(--text-dim);
+      line-height: 1.6;
+    }
+    
+    /* XP Reward Indicator */
+    .xp-reward {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: linear-gradient(135deg, #FFF9E6 0%, #FFF3CC 100%);
+      border: 1px solid rgba(201,169,98,0.3);
+      padding: 8px 14px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      color: var(--gold-dim);
+      margin-top: 12px;
+    }
+    
+    /* Section Labels */
+    .section-label {
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-bottom: 14px;
+      margin-top: 24px;
+    }
+    
+    .section-label:first-of-type {
+      margin-top: 0;
+    }
+    
+    /* Ring Style Cards */
+    .style-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    
+    .style-card {
+      background: var(--bg-card);
+      border: 2px solid transparent;
+      border-radius: var(--radius);
+      padding: 16px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-align: center;
+      position: relative;
+    }
+    
+    .style-card:hover {
+      background: var(--bg-card-hover);
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-hover);
+    }
+    
+    .style-card.selected {
+      border-color: var(--gold);
+      background: var(--bg-panel);
+      box-shadow: 0 4px 20px rgba(201,169,98,0.2);
+    }
+    
+    .style-card.selected::after {
+      content: '✓';
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 22px;
+      height: 22px;
+      background: var(--gold);
+      color: white;
+      border-radius: 50%;
+      font-size: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .style-image {
+      width: 100%;
+      height: 80px;
+      object-fit: contain;
+      margin-bottom: 10px;
+      transition: transform 0.3s ease;
+    }
+    
+    .style-card:hover .style-image {
+      transform: scale(1.05);
+    }
+    
+    .style-name {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+    
+    .style-detail {
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      margin-top: 4px;
+    }
+    
+    /* Metal Swatches */
+    .metal-row {
+      display: flex;
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+    
+    .metal-swatch {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+    
+    .metal-swatch:hover {
+      transform: scale(1.05);
+    }
+    
+    .swatch-circle {
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      border: 3px solid transparent;
+      transition: all 0.25s ease;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .swatch-circle.yellow { background: linear-gradient(135deg, #f7e18c 0%, #d4af37 50%, #aa8c2c 100%); }
+    .swatch-circle.white { background: linear-gradient(135deg, #ffffff 0%, #e8e8e8 50%, #c8c8c8 100%); }
+    .swatch-circle.rose { background: linear-gradient(135deg, #f5c6c6 0%, #e5a9a9 50%, #d49292 100%); }
+    .swatch-circle.platinum { background: linear-gradient(135deg, #f8f8f8 0%, #e0e0e0 50%, #c0c0c0 100%); }
+    
+    .metal-swatch.selected .swatch-circle {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px var(--gold-light), 0 4px 15px rgba(201,169,98,0.3);
+    }
+    
+    .swatch-label {
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      text-align: center;
+    }
+    
+    .metal-swatch.selected .swatch-label {
+      color: var(--gold);
+      font-weight: 600;
+    }
+    
+    /* Diamond Shape Grid */
+    .diamond-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+    
+    .diamond-item {
+      aspect-ratio: 1;
+      background: var(--bg-card);
+      border: 2px solid transparent;
+      border-radius: 14px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+      position: relative;
+    }
+    
+    .diamond-item:hover {
+      background: var(--bg-card-hover);
+      transform: scale(1.05);
+      border-color: rgba(201,169,98,0.3);
+    }
+    
+    .diamond-item.selected {
+      border-color: var(--gold);
+      background: var(--bg-panel);
+      box-shadow: 0 4px 20px rgba(201,169,98,0.25);
+    }
+    
+    .diamond-item.selected::after {
+      content: '✓';
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      width: 16px;
+      height: 16px;
+      background: var(--gold);
+      color: white;
+      border-radius: 50%;
+      font-size: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .diamond-svg {
+      width: 44px;
+      height: 44px;
+      margin-bottom: 6px;
+      opacity: 0.7;
+      transition: all 0.3s ease;
+    }
+    
+    .diamond-item:hover .diamond-svg,
+    .diamond-item.selected .diamond-svg {
+      opacity: 1;
+    }
+    
+    .diamond-item.selected .diamond-svg {
+      filter: drop-shadow(0 2px 6px rgba(201,169,98,0.4));
+    }
+    
+    .diamond-label {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-dim);
+      font-weight: 500;
+    }
+    
+    .diamond-item.selected .diamond-label {
+      color: var(--gold);
+    }
+    
+    /* Carat Slider */
+    .carat-section {
+      margin-bottom: 24px;
+    }
+    
+    .carat-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 14px;
+    }
+    
+    .carat-value {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.5rem;
+      color: var(--gold);
+      font-weight: 500;
+    }
+    
+    .slider-track {
+      position: relative;
+      height: 8px;
+      background: var(--bg-card);
+      border-radius: 4px;
+      margin-bottom: 10px;
+    }
+    
+    .slider-fill {
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      background: linear-gradient(90deg, var(--gold-dim), var(--gold));
+      border-radius: 4px;
+      transition: width 0.15s ease;
+    }
+    
+    .slider-thumb {
+      position: absolute;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 24px;
+      height: 24px;
+      background: var(--bg-panel);
+      border: 3px solid var(--gold);
+      border-radius: 50%;
+      box-shadow: 0 2px 10px rgba(201,169,98,0.4);
+      pointer-events: none;
+      transition: left 0.15s ease;
+    }
+    
+    .slider-input {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+    
+    .slider-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.7rem;
+      color: var(--text-dim);
+    }
+    
+    /* Navigation */
+    .nav-row {
+      margin-top: auto;
+      display: flex;
+      gap: 12px;
+      padding-top: 24px;
+    }
+    
+    .nav-btn {
+      flex: 1;
+      padding: 16px;
+      border-radius: 12px;
+      font-family: 'Nunito Sans', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+    }
+    
+    .nav-btn.back {
+      background: var(--bg-card);
+      border: 1px solid rgba(201,169,98,0.3);
+      color: var(--text);
+    }
+    
+    .nav-btn.back:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--gold);
+    }
+    
+    .nav-btn.next {
+      background: var(--gold);
+      border: none;
+      color: white;
+    }
+    
+    .nav-btn.next:hover:not(:disabled) {
+      background: var(--gold-bright);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(201,169,98,0.35);
+    }
+    
+    .nav-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    
+    /* Summary Card */
+    .summary-card {
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 24px;
+      border: 1px solid rgba(201,169,98,0.15);
+    }
+    
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 16px 20px;
+      border-bottom: 1px solid rgba(201,169,98,0.1);
+    }
+    
+    .summary-row:last-child {
+      border-bottom: none;
+    }
+    
+    .summary-label {
+      color: var(--text-dim);
+      font-size: 0.85rem;
+    }
+    
+    .summary-value {
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: var(--text);
+    }
+    
+    /* Lead Form */
+    .lead-form {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    
+    .form-field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    
+    .form-label {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .form-input,
+    .form-textarea {
+      background: var(--bg-card);
+      border: 1px solid rgba(201,169,98,0.2);
+      border-radius: 10px;
+      padding: 14px 16px;
+      font-family: 'Nunito Sans', sans-serif;
+      font-size: 0.95rem;
+      color: var(--text);
+      transition: all 0.25s ease;
+    }
+    
+    .form-input::placeholder,
+    .form-textarea::placeholder {
+      color: var(--text-dim);
+      opacity: 0.6;
+    }
+    
+    .form-input:focus,
+    .form-textarea:focus {
+      outline: none;
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px var(--gold-light);
+    }
+    
+    .form-textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+    
+    .submit-btn {
+      width: 100%;
+      padding: 18px;
+      background: var(--gold);
+      border: none;
+      border-radius: 12px;
+      color: white;
+      font-family: 'Nunito Sans', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-top: 8px;
+    }
+    
+    .submit-btn:hover:not(:disabled) {
+      background: var(--gold-bright);
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(201,169,98,0.35);
+    }
+    
+    .submit-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    
+    .reset-btn {
+      width: 100%;
+      padding: 14px;
+      background: transparent;
+      border: 1px solid rgba(201,169,98,0.3);
+      border-radius: 10px;
+      color: var(--text-dim);
+      font-family: 'Nunito Sans', sans-serif;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+    
+    .reset-btn:hover {
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+    
+    /* Success */
+    .success-box {
+      text-align: center;
+      padding: 32px 0;
+      animation: slideUp 0.4s ease;
+    }
+    
+    .success-icon {
+      width: 64px;
+      height: 64px;
+      background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dim) 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+      font-size: 28px;
+      color: white;
+      box-shadow: 0 8px 25px rgba(201,169,98,0.4);
+    }
+    
+    .success-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.6rem;
+      margin-bottom: 10px;
+    }
+    
+    .success-text {
+      font-size: 0.9rem;
+      color: var(--text-dim);
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+    
+    /* Achievement Toast */
+    .achievement-toast {
+      position: fixed;
+      top: 90px;
+      right: 20px;
+      background: var(--bg-panel);
+      border: 2px solid var(--gold);
+      border-radius: 16px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      box-shadow: 0 10px 40px rgba(201,169,98,0.3);
+      z-index: 1000;
+      animation: achievementSlide 4s ease forwards;
+    }
+    
+    .achievement-icon {
+      width: 44px;
+      height: 44px;
+      background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dim) 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+    
+    .achievement-content {
+      text-align: left;
+    }
+    
+    .achievement-label {
+      font-size: 0.65rem;
+      color: var(--gold);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
+    .achievement-name {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+    
+    .achievement-xp {
+      font-size: 0.8rem;
+      color: var(--gold);
+    }
+    
+    /* Responsive */
+    @media (max-width: 900px) {
+      .main {
+        grid-template-columns: 1fr;
+      }
+      .preview-area {
+        min-height: 45vh;
+        padding: 24px;
+      }
+      .config-panel {
+        border-left: none;
+        border-top: 1px solid rgba(201,169,98,0.15);
+      }
+      .ring-stage {
+        width: 300px;
+        height: 300px;
+      }
+      .header {
+        padding: 12px 16px;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      .logo {
+        font-size: 1.1rem;
+      }
+      .header-right {
+        gap: 12px;
+      }
+      .xp-badge {
+        padding: 6px 12px;
+        font-size: 0.75rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  
+  <script type="text/babel">
+    const { useState, useEffect, useCallback } = React;
+    
+    // ===================== DATA =====================
+    
+    const RING_STYLES = [
+      { 
+        id: 'solitaire', 
+        name: 'Solitaire', 
+        detail: 'Timeless single stone',
+        imageId: '73171661'
+      },
+      { 
+        id: 'hidden-halo', 
+        name: 'Hidden Halo', 
+        detail: 'Secret sparkle beneath',
+        imageId: '136137046'
+      },
+      { 
+        id: 'halo', 
+        name: 'Halo', 
+        detail: 'Surrounded by brilliance',
+        imageId: '73284617'
+      },
+      { 
+        id: 'three-stone', 
+        name: 'Three Stone', 
+        detail: 'Past, present, future',
+        imageId: '73486892'
+      },
+    ];
+    
+    const METALS = [
+      { id: 'white', name: '14K White Gold', swatch: 'white', recipe: 'white' },
+      { id: 'yellow', name: '14K Yellow Gold', swatch: 'yellow', recipe: 'yellow' },
+      { id: 'rose', name: '14K Rose Gold', swatch: 'rose', recipe: 'rose' },
+      { id: 'platinum', name: 'Platinum', swatch: 'platinum', recipe: 'white' },
+    ];
+    
+    const DIAMOND_SHAPES = [
+      { id: 'round', name: 'Round' },
+      { id: 'oval', name: 'Oval' },
+      { id: 'cushion', name: 'Cushion' },
+      { id: 'princess', name: 'Princess' },
+      { id: 'emerald', name: 'Emerald' },
+      { id: 'pear', name: 'Pear' },
+      { id: 'marquise', name: 'Marquise' },
+      { id: 'radiant', name: 'Radiant' },
+      { id: 'asscher', name: 'Asscher' },
+    ];
+    
+    const CARATS = ['0.5', '0.75', '1.0', '1.25', '1.5', '1.75', '2.0', '2.5', '3.0'];
+    
+    const ACHIEVEMENTS = {
+      styleSelected: { icon: '💍', name: 'Style Maven', xp: 25 },
+      metalChosen: { icon: '✨', name: 'Metal Master', xp: 15 },
+      diamondPicked: { icon: '💎', name: 'Diamond Expert', xp: 30 },
+      bigCarat: { icon: '👑', name: 'Go Big!', xp: 50 },
+      ringComplete: { icon: '🎉', name: 'Ring Designer', xp: 100 },
+    };
+    
+    // ===================== HELPER FUNCTIONS =====================
+    
+    const getStullerImageUrl = (imageId, metalRecipe = 'white', size = '500') => {
+      return `https://meteor.stullercloud.com/das/${imageId}?obj=metals&obj.recipe=${metalRecipe}&$${size}$`;
+    };
+    
+    // ===================== SVG COMPONENTS =====================
+    
+    const DiamondShapeSVG = ({ shape }) => {
+      const shapes = {
+        round: (
+          <svg viewBox="0 0 50 50" className="diamond-svg">
+            <circle cx="25" cy="25" r="20" fill="none" stroke="#888" strokeWidth="1.5"/>
+            <circle cx="25" cy="25" r="12" fill="none" stroke="#aaa" strokeWidth="1"/>
+            <line x1="25" y1="5" x2="25" y2="45" stroke="#ccc" strokeWidth="0.5"/>
+            <line x1="5" y1="25" x2="45" y2="25" stroke="#ccc" strokeWidth="0.5"/>
+            <ellipse cx="18" cy="18" rx="5" ry="3" fill="rgba(255,255,255,0.4)"/>
+          </svg>
+        ),
+        oval: (
+          <svg viewBox="0 0 50 50" className="diamond-svg">
+            <ellipse cx="25" cy="25" rx="20" ry="14" fill="none" stroke="#888" strokeWidth="1.5"/>
+            <ellipse cx="25" cy="25" rx="12" ry="8" fill="none" stroke="#aaa" strokeWidth="1"/>
+            <ellipse cx="18" cy="20" rx="4" ry="2" fill="rgba(255,255,255,0.4)"/>
+          </svg>
+        ),
+        cushion: (
+          <svg viewBox="0 0 50 50" className="diamond-svg">
+            <rect x="7" y="7" width="36" height="36" rx="8" fill="none" stroke="#888" strokeWidth="1.5"/>
+            <rect x="14" y="14" width="22" height="22" rx="4" fill="none" stroke="#aaa" strokeWidth="1"/>
+            <rect x="12" y="12" width="8" height="5" rx="2" fill="rgba(255,255,255,0.4)"/>
+          </svg>
+        ),
+        princess: (
+          <svg viewBox="0 0 50 50" className="diamond-svg">
+            <rect x="7" y="7" width="36" height="36" fill="none" stroke="#888" strokeWidth="1.5"/>
+            <rect x="14" y="14" width="22" height="22" fill="none" stroke="#aaa" strokeWidth="1"/>
+            <line x1="7" y1="7" x2="43" y2="43" stroke="#ccc" strokeWidth="0.5"/>
+            <line x1="43" y1="7" x2="7" y2="43" stroke="#ccc" strokeWidth="0.5"/>
+            <polygon points="12,12 20,12 15,18" fill="rgba(255,255,255,0.4)"/>
+          </svg>
+        ),
+        emerald: (
+          <svg viewBox="0 0 50 50" className="diamond-svg">
+            <polygon points="10,12 40,12 45,20 45,30 40,38 10,38 5,30 5,20" fill="none" stroke="#888" strokeWidth="1.5"/>
+            <polygon points="15,16 35,16 38,22 38,28 35,34 15,34 12,28 12,22" fill="none" stroke="#aaa" strokeWidth="1"/>
+            <rect x="12" y="14" width="10" height="5" fill="rgba(255,255,255,0.4)"/>
+          </svg>
+        ),
+        pear: (
+          <svg viewBox="0 0 50 50" className="diamond-svg">
+            <path d="M25 5 Q45 25 35 38 Q28 48 25 48 Q22 48 15 38 Q5 25 25 5" fill="none" stroke="#888" strokeWidth="1.5"/>
+            <path d="M25 12 Q38 25 32 34 Q27 40 25 40 Q23 40 18 34 Q12 25 25 12" fill="none" stroke="#aaa" strokeWidth="1"/>
+            <ellipse cx="20" cy="18" rx="4" ry="3" fill="rgba(255,255,255,0.4)"/>
+          </svg>
+        ),
+        marquise: (
+          <svg viewBox="0 0 50 50" className="diamond-svg">
+            <ellipse cx="25" cy="25" rx="10" ry="22" fill="none" stroke="#888" strokeWidth="1.5"/>
+            <ellipse cx="25" cy="25" rx="6" ry="14" fill="none" stroke="#aaa" strokeWidth="1"/>
+            <ellipse cx="22" cy="15" rx="3" ry="5" fill="rgba(255,255,255,0.4)"/>
+          </svg>
+        ),
+        radiant: (
+          <svg viewBox="0 0 50 50" className="diamond-svg">
+            <polygon points="12,5 38,5 45,15 45,35 38,45 12,45 5,35 5,15" fill="none" stroke="#888" strokeWidth="1.5"/>
+            <polygon points="16,10 34,10 39,18 39,32 34,40 16,40 11,32 11,18" fill="none" stroke="#aaa" strokeWidth="1"/>
+            <rect x="12" y="10" width="8" height="5" fill="rgba(255,255,255,0.4)"/>
+          </svg>
+        ),
+        asscher: (
+          <svg viewBox="0 0 50 50" className="diamond-svg">
+            <polygon points="12,5 38,5 45,12 45,38 38,45 12,45 5,38 5,12" fill="none" stroke="#888" strokeWidth="1.5"/>
+            <polygon points="17,10 33,10 38,17 38,33 33,40 17,40 12,33 12,17" fill="none" stroke="#aaa" strokeWidth="1"/>
+            <polygon points="22,16 28,16 31,22 31,28 28,34 22,34 19,28 19,22" fill="none" stroke="#bbb" strokeWidth="0.5"/>
+            <rect x="14" y="14" width="6" height="4" fill="rgba(255,255,255,0.4)"/>
+          </svg>
+        ),
+      };
+      return shapes[shape] || shapes.round;
+    };
+    
+    // Sparkles Component
+    const Sparkles = ({ active, count = 6 }) => {
+      if (!active) return null;
+      
+      const positions = [
+        { top: '20%', left: '35%' },
+        { top: '25%', left: '60%' },
+        { top: '40%', left: '30%' },
+        { top: '35%', left: '65%' },
+        { top: '50%', left: '45%' },
+        { top: '45%', left: '55%' },
+      ];
+      
+      return (
+        <div className="sparkles">
+          {positions.slice(0, count).map((pos, i) => (
+            <div 
+              key={i} 
+              className="sparkle active" 
+              style={{ 
+                ...pos, 
+                animationDelay: `${i * 0.15}s`
+              }}
+            />
+          ))}
+        </div>
+      );
+    };
+    
+    // Achievement Toast
+    const AchievementToast = ({ achievement, onComplete }) => {
+      useEffect(() => {
+        if (achievement) {
+          const timer = setTimeout(onComplete, 4000);
+          return () => clearTimeout(timer);
+        }
+      }, [achievement, onComplete]);
+      
+      if (!achievement) return null;
+      
+      return (
+        <div className="achievement-toast">
+          <div className="achievement-icon">{achievement.icon}</div>
+          <div className="achievement-content">
+            <div className="achievement-label">Achievement Unlocked!</div>
+            <div className="achievement-name">{achievement.name}</div>
+            <div className="achievement-xp">+{achievement.xp} XP</div>
+          </div>
+        </div>
+      );
+    };
+    
+    // Lead Form
+    const LeadForm = ({ config, onReset }) => {
+      const [form, setForm] = useState({ name: '', email: '', phone: '', message: '' });
+      const [status, setStatus] = useState('idle');
+      
+      const specs = {
+        style: RING_STYLES.find(s => s.id === config.style)?.name,
+        diamond: DIAMOND_SHAPES.find(d => d.id === config.diamond)?.name,
+        carat: config.carat + ' ct',
+        metal: METALS.find(m => m.id === config.metal)?.name,
+      };
+      
+      const handleSubmit = async (e) => {
+        e.preventDefault();
+        setStatus('submitting');
+        
+        try {
+          await fetch('/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({
+              'form-name': 'ring-builder',
+              ...form,
+              ...specs,
+            }).toString(),
+          });
+          setStatus('success');
+        } catch {
+          const subject = encodeURIComponent('Ring Builder Inquiry');
+          const body = encodeURIComponent(
+            `Name: ${form.name}\nEmail: ${form.email}\nPhone: ${form.phone}\n\n` +
+            `Ring Configuration:\n- Style: ${specs.style}\n- Diamond: ${specs.diamond}\n- Carat: ${specs.carat}\n- Metal: ${specs.metal}\n\n` +
+            `Message: ${form.message || 'None'}`
+          );
+          window.open(`mailto:info@gabriellaamoura.com?subject=${subject}&body=${body}`);
+          setStatus('success');
+        }
+      };
+      
+      if (status === 'success') {
+        return (
+          <div className="success-box">
+            <div className="success-icon">✓</div>
+            <h3 className="success-title">Inquiry Sent!</h3>
+            <p className="success-text">Thank you! We'll review your dream ring and reach out within 24 hours with options tailored for you.</p>
+            <button className="reset-btn" onClick={onReset}>Design Another Ring</button>
+          </div>
+        );
+      }
+      
+      return (
+        <form className="lead-form" onSubmit={handleSubmit} data-netlify="true" name="ring-builder">
+          <input type="hidden" name="form-name" value="ring-builder"/>
+          <input type="hidden" name="style" value={specs.style}/>
+          <input type="hidden" name="diamond" value={specs.diamond}/>
+          <input type="hidden" name="carat" value={specs.carat}/>
+          <input type="hidden" name="metal" value={specs.metal}/>
+          
+          <div className="form-field">
+            <label className="form-label">Name *</label>
+            <input className="form-input" name="name" required placeholder="Your name" value={form.name} onChange={e => setForm({...form, name: e.target.value})}/>
+          </div>
+          <div className="form-field">
+            <label className="form-label">Email *</label>
+            <input className="form-input" name="email" type="email" required placeholder="you@email.com" value={form.email} onChange={e => setForm({...form, email: e.target.value})}/>
+          </div>
+          <div className="form-field">
+            <label className="form-label">Phone</label>
+            <input className="form-input" name="phone" type="tel" placeholder="(555) 123-4567" value={form.phone} onChange={e => setForm({...form, phone: e.target.value})}/>
+          </div>
+          <div className="form-field">
+            <label className="form-label">Additional Details</label>
+            <textarea className="form-textarea" name="message" placeholder="Timeline, budget, special requests..." value={form.message} onChange={e => setForm({...form, message: e.target.value})}/>
+          </div>
+          
+          <button type="submit" className="submit-btn" disabled={status === 'submitting'}>
+            {status === 'submitting' ? 'Sending...' : 'Submit Inquiry'}
+          </button>
+          <button type="button" className="reset-btn" onClick={onReset}>Start Over</button>
+        </form>
+      );
+    };
+    
+    // ===================== MAIN APP =====================
+    
+    const App = () => {
+      const [step, setStep] = useState(1);
+      const [config, setConfig] = useState({
+        style: null,
+        metal: 'white',
+        diamond: null,
+        carat: '1.0',
+      });
+      const [celebrating, setCelebrating] = useState(false);
+      const [xp, setXp] = useState(0);
+      const [unlockedAchievements, setUnlockedAchievements] = useState([]);
+      const [currentAchievement, setCurrentAchievement] = useState(null);
+      
+      const awardAchievement = useCallback((key) => {
+        if (!unlockedAchievements.includes(key)) {
+          const achievement = ACHIEVEMENTS[key];
+          setUnlockedAchievements(prev => [...prev, key]);
+          setXp(prev => prev + achievement.xp);
+          setCurrentAchievement(achievement);
+        }
+      }, [unlockedAchievements]);
+      
+      const updateConfig = (key, value) => {
+        setConfig(prev => ({ ...prev, [key]: value }));
+        
+        // Trigger celebrations and achievements
+        if (key === 'style' && value) {
+          setCelebrating(true);
+          setTimeout(() => setCelebrating(false), 600);
+          awardAchievement('styleSelected');
+        }
+        if (key === 'metal' && value && !unlockedAchievements.includes('metalChosen')) {
+          awardAchievement('metalChosen');
+        }
+        if (key === 'diamond' && value) {
+          setCelebrating(true);
+          setTimeout(() => setCelebrating(false), 600);
+          awardAchievement('diamondPicked');
+        }
+        if (key === 'carat' && parseFloat(value) >= 2.0) {
+          awardAchievement('bigCarat');
+        }
+      };
+      
+      const canProceed = () => {
+        if (step === 1) return config.style !== null;
+        if (step === 2) return config.diamond !== null;
+        return true;
+      };
+      
+      const goToStep = (newStep) => {
+        setStep(newStep);
+        if (newStep === 3) {
+          awardAchievement('ringComplete');
+        }
+      };
+      
+      const resetBuilder = () => {
+        setStep(1);
+        setConfig({ style: null, metal: 'white', diamond: null, carat: '1.0' });
+      };
+      
+      const stepNames = ['Style', 'Diamond', 'Submit'];
+      
+      const getPreviewTitle = () => {
+        const parts = [];
+        if (config.diamond) parts.push(DIAMOND_SHAPES.find(d => d.id === config.diamond)?.name);
+        if (config.style) parts.push(RING_STYLES.find(s => s.id === config.style)?.name);
+        return parts.length ? parts.join(' ') : 'Your Ring';
+      };
+      
+      const currentStyle = RING_STYLES.find(s => s.id === config.style);
+      const currentMetal = METALS.find(m => m.id === config.metal);
+      
+      return (
+        <div className="app">
+          <header className="header">
+            <div className="logo">Gabriella <span>Amoura</span></div>
+            <div className="header-right">
+              <div className="xp-badge">
+                <span className="xp-icon">⭐</span>
+                <span className="xp-value">{xp} XP</span>
+              </div>
+              <div className="progress">
+                <div className="progress-track">
+                  {[1, 2, 3].map(s => (
+                    <div 
+                      key={s} 
+                      className={`progress-segment ${s === step ? 'active' : ''} ${s < step ? 'done' : ''}`}
+                    />
+                  ))}
+                </div>
+                <span className="progress-text">{stepNames[step - 1]}</span>
+              </div>
+            </div>
+          </header>
+          
+          <AchievementToast 
+            achievement={currentAchievement} 
+            onComplete={() => setCurrentAchievement(null)}
+          />
+          
+          <main className="main">
+            <div className="preview-area">
+              <div className="ring-stage">
+                <Sparkles active={celebrating} />
+                {currentStyle ? (
+                  <img 
+                    src={getStullerImageUrl(currentStyle.imageId, currentMetal?.recipe || 'white')}
+                    alt={currentStyle.name}
+                    className={`ring-image ${celebrating ? 'celebrating' : ''}`}
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                    }}
+                  />
+                ) : (
+                  <div className="ring-placeholder">
+                    Select a ring style to begin
+                  </div>
+                )}
+              </div>
+              <div className="preview-info">
+                <h2 className="preview-title">{getPreviewTitle()}</h2>
+                <div className="preview-tags">
+                  <span className="preview-tag">{currentMetal?.name || '14K White Gold'}</span>
+                  {config.diamond && <span className="preview-tag">{config.carat} ct</span>}
+                  {config.style && <span className="preview-tag">{currentStyle?.name}</span>}
+                </div>
+              </div>
+            </div>
+            
+            <div className="config-panel" key={step}>
+              {/* STEP 1: Style + Metal */}
+              {step === 1 && (
+                <>
+                  <div className="step-intro">
+                    <span className="step-badge">⭐ Step 1 of 3</span>
+                    <h2 className="step-title">Choose Your Style</h2>
+                    <p className="step-desc">Select a ring setting style and metal type to begin your design.</p>
+                    <div className="xp-reward">⭐ +25 XP for selecting a style</div>
+                  </div>
+                  
+                  <div className="section-label">Ring Style</div>
+                  <div className="style-grid">
+                    {RING_STYLES.map(style => (
+                      <div 
+                        key={style.id}
+                        className={`style-card ${config.style === style.id ? 'selected' : ''}`}
+                        onClick={() => updateConfig('style', style.id)}
+                      >
+                        <img 
+                          src={getStullerImageUrl(style.imageId, currentMetal?.recipe || 'white', '350')}
+                          alt={style.name}
+                          className="style-image"
+                          onError={(e) => {
+                            e.target.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="30" fill="none" stroke="%23ccc" stroke-width="2"/></svg>';
+                          }}
+                        />
+                        <div className="style-name">{style.name}</div>
+                        <div className="style-detail">{style.detail}</div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <div className="section-label">Metal Type</div>
+                  <div className="metal-row">
+                    {METALS.map(metal => (
+                      <div 
+                        key={metal.id}
+                        className={`metal-swatch ${config.metal === metal.id ? 'selected' : ''}`}
+                        onClick={() => updateConfig('metal', metal.id)}
+                      >
+                        <div className={`swatch-circle ${metal.swatch}`}/>
+                        <span className="swatch-label">{metal.name.replace('14K ', '')}</span>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+              
+              {/* STEP 2: Diamond Shape + Carat */}
+              {step === 2 && (
+                <>
+                  <div className="step-intro">
+                    <span className="step-badge">💎 Step 2 of 3</span>
+                    <h2 className="step-title">Choose Your Diamond</h2>
+                    <p className="step-desc">Select your preferred diamond shape and carat size.</p>
+                    <div className="xp-reward">💎 +30 XP • Choose 2ct+ for bonus +50 XP</div>
+                  </div>
+                  
+                  <div className="section-label">Diamond Shape</div>
+                  <div className="diamond-grid">
+                    {DIAMOND_SHAPES.map(shape => (
+                      <div 
+                        key={shape.id}
+                        className={`diamond-item ${config.diamond === shape.id ? 'selected' : ''}`}
+                        onClick={() => updateConfig('diamond', shape.id)}
+                      >
+                        <DiamondShapeSVG shape={shape.id} />
+                        <span className="diamond-label">{shape.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <div className="section-label">Carat Size</div>
+                  <div className="carat-section">
+                    <div className="carat-header">
+                      <span></span>
+                      <span className="carat-value">{config.carat} ct</span>
+                    </div>
+                    <div className="slider-track">
+                      <div 
+                        className="slider-fill" 
+                        style={{ width: `${(CARATS.indexOf(config.carat) / (CARATS.length - 1)) * 100}%` }}
+                      />
+                      <div 
+                        className="slider-thumb" 
+                        style={{ left: `${(CARATS.indexOf(config.carat) / (CARATS.length - 1)) * 100}%` }}
+                      />
+                      <input
+                        type="range"
+                        className="slider-input"
+                        min="0"
+                        max={CARATS.length - 1}
+                        value={CARATS.indexOf(config.carat)}
+                        onChange={(e) => updateConfig('carat', CARATS[e.target.value])}
+                      />
+                    </div>
+                    <div className="slider-labels">
+                      <span>0.5 ct</span>
+                      <span>1.5 ct</span>
+                      <span>3.0 ct</span>
+                    </div>
+                  </div>
+                </>
+              )}
+              
+              {/* STEP 3: Summary + Form */}
+              {step === 3 && (
+                <>
+                  <div className="step-intro">
+                    <span className="step-badge">🎉 {xp} XP Earned!</span>
+                    <h2 className="step-title">Your Dream Ring</h2>
+                    <p className="step-desc">Review your configuration and submit your inquiry. We'll reach out with options tailored for you.</p>
+                  </div>
+                  
+                  <div className="summary-card">
+                    <div className="summary-row">
+                      <span className="summary-label">Style</span>
+                      <span className="summary-value">{RING_STYLES.find(s => s.id === config.style)?.name}</span>
+                    </div>
+                    <div className="summary-row">
+                      <span className="summary-label">Diamond</span>
+                      <span className="summary-value">{DIAMOND_SHAPES.find(d => d.id === config.diamond)?.name}</span>
+                    </div>
+                    <div className="summary-row">
+                      <span className="summary-label">Carat</span>
+                      <span className="summary-value">{config.carat} ct</span>
+                    </div>
+                    <div className="summary-row">
+                      <span className="summary-label">Metal</span>
+                      <span className="summary-value">{METALS.find(m => m.id === config.metal)?.name}</span>
+                    </div>
+                  </div>
+                  
+                  <LeadForm config={config} onReset={resetBuilder} />
+                </>
+              )}
+              
+              {/* Navigation */}
+              {step < 3 && (
+                <div className="nav-row">
+                  {step > 1 && (
+                    <button className="nav-btn back" onClick={() => setStep(step - 1)}>
+                      Back
+                    </button>
+                  )}
+                  <button 
+                    className="nav-btn next" 
+                    onClick={() => goToStep(step + 1)} 
+                    disabled={!canProceed()}
+                  >
+                    {step === 2 ? 'Review Ring' : 'Continue'}
+                  </button>
+                </div>
+              )}
+            </div>
+          </main>
+        </div>
+      );
+    };
+    
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
