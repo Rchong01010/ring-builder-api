@@ -1,0 +1,1658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ring Builder | Design Your Perfect Ring</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Nunito+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    :root {
+      --bg: #0c0c0c;
+      --bg-panel: #161616;
+      --bg-card: #1c1c1c;
+      --bg-card-hover: #252525;
+      --text: #f8f8f8;
+      --text-dim: #888;
+      --gold: #c9a962;
+      --gold-bright: #e3c878;
+      --gold-dim: #9a7d3a;
+      --diamond: #e8f4fc;
+      --radius: 12px;
+    }
+    
+    @keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.6} }
+    @keyframes float { 0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)} }
+    @keyframes sparkle { 0%,100%{opacity:0;transform:scale(0) rotate(0deg)}50%{opacity:1;transform:scale(1) rotate(180deg)} }
+    @keyframes dropPulse { 0%{box-shadow:0 0 0 0 rgba(201,169,98,0.5)}100%{box-shadow:0 0 0 20px rgba(201,169,98,0)} }
+    @keyframes celebrate { 0%{transform:scale(1)}50%{transform:scale(1.08)}100%{transform:scale(1)} }
+    @keyframes slideUp { from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)} }
+    @keyframes shimmer { 0%{background-position:-200% 0}100%{background-position:200% 0} }
+    @keyframes bounce { 0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)} }
+    
+    html, body, #root { height: 100%; }
+    
+    body {
+      font-family: 'Nunito Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow-x: hidden;
+    }
+    
+    .app {
+      min-height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    /* Header */
+    .header {
+      padding: 16px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      background: rgba(12,12,12,0.95);
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    
+    .logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.3rem;
+      font-weight: 500;
+      letter-spacing: 3px;
+      color: var(--gold);
+      text-transform: uppercase;
+    }
+    
+    .progress {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .progress-track {
+      display: flex;
+      gap: 4px;
+    }
+    
+    .progress-segment {
+      width: 32px;
+      height: 3px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 2px;
+      transition: all 0.3s ease;
+    }
+    
+    .progress-segment.active {
+      background: var(--gold);
+    }
+    
+    .progress-segment.done {
+      background: var(--gold-dim);
+    }
+    
+    .progress-text {
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-left: 12px;
+    }
+    
+    /* Main Layout */
+    .main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 400px;
+    }
+    
+    /* Preview Area */
+    .preview-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+      background: radial-gradient(ellipse at 50% 40%, rgba(201,169,98,0.06) 0%, transparent 60%);
+      position: relative;
+    }
+    
+    .ring-stage {
+      position: relative;
+      width: 340px;
+      height: 340px;
+    }
+    
+    .ring-stage.drag-over {
+      animation: dropPulse 1s infinite;
+    }
+    
+    .drop-target {
+      position: absolute;
+      width: 100px;
+      height: 100px;
+      border: 2px dashed var(--gold);
+      border-radius: 50%;
+      top: 22%;
+      left: 50%;
+      transform: translateX(-50%);
+      opacity: 0;
+      transition: all 0.3s ease;
+      pointer-events: none;
+    }
+    
+    .drop-target.visible {
+      opacity: 0.6;
+    }
+    
+    .drop-target.hovering {
+      opacity: 1;
+      transform: translateX(-50%) scale(1.1);
+      background: rgba(201,169,98,0.15);
+    }
+    
+    .ring-canvas {
+      width: 100%;
+      height: 100%;
+    }
+    
+    .ring-canvas.celebrating {
+      animation: celebrate 0.5s ease;
+    }
+    
+    /* Sparkle overlay */
+    .sparkles {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+    
+    .sparkle {
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      background: white;
+      clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+    }
+    
+    .preview-info {
+      margin-top: 28px;
+      text-align: center;
+    }
+    
+    .preview-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.5rem;
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+    
+    .preview-tags {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    
+    .preview-tag {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      background: var(--bg-card);
+      padding: 6px 12px;
+      border-radius: 20px;
+    }
+    
+    /* Config Panel */
+    .config-panel {
+      background: var(--bg-panel);
+      border-left: 1px solid rgba(255,255,255,0.06);
+      padding: 32px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .step-intro {
+      margin-bottom: 24px;
+      animation: slideUp 0.4s ease;
+    }
+    
+    .step-badge {
+      display: inline-block;
+      font-size: 0.65rem;
+      color: var(--gold);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 8px;
+    }
+    
+    .step-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.6rem;
+      font-weight: 500;
+      margin-bottom: 6px;
+    }
+    
+    .step-desc {
+      font-size: 0.85rem;
+      color: var(--text-dim);
+      line-height: 1.5;
+    }
+    
+    /* Selection Grids */
+    .section-label {
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+      margin-top: 20px;
+    }
+    
+    .section-label:first-of-type {
+      margin-top: 0;
+    }
+    
+    /* Ring Base Cards */
+    .base-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    
+    .base-card {
+      background: var(--bg-card);
+      border: 2px solid transparent;
+      border-radius: var(--radius);
+      padding: 16px 12px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      text-align: center;
+    }
+    
+    .base-card:hover {
+      background: var(--bg-card-hover);
+      transform: translateY(-2px);
+    }
+    
+    .base-card.selected {
+      border-color: var(--gold);
+      background: rgba(201,169,98,0.1);
+    }
+    
+    .base-icon {
+      width: 48px;
+      height: 48px;
+      margin: 0 auto 8px;
+      opacity: 0.85;
+    }
+    
+    .base-card.selected .base-icon {
+      opacity: 1;
+    }
+    
+    .base-name {
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+    
+    .base-detail {
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      margin-top: 2px;
+    }
+    
+    /* Metal Swatches */
+    .metal-row {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    
+    .metal-swatch {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+    }
+    
+    .swatch-circle {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      transition: all 0.25s ease;
+    }
+    
+    .swatch-circle.yellow { background: linear-gradient(135deg, #f7e18c 0%, #d4af37 50%, #aa8c2c 100%); }
+    .swatch-circle.white { background: linear-gradient(135deg, #ffffff 0%, #e8e8e8 50%, #c8c8c8 100%); }
+    .swatch-circle.rose { background: linear-gradient(135deg, #f5c6c6 0%, #e5a9a9 50%, #d49292 100%); }
+    .swatch-circle.platinum { background: linear-gradient(135deg, #f8f8f8 0%, #e0e0e0 50%, #c0c0c0 100%); }
+    
+    .metal-swatch:hover .swatch-circle {
+      transform: scale(1.1);
+    }
+    
+    .metal-swatch.selected .swatch-circle {
+      border-color: var(--gold);
+      box-shadow: 0 0 12px rgba(201,169,98,0.4);
+    }
+    
+    .swatch-label {
+      font-size: 0.65rem;
+      color: var(--text-dim);
+      text-align: center;
+    }
+    
+    .metal-swatch.selected .swatch-label {
+      color: var(--gold);
+    }
+    
+    /* Prong Cycler */
+    .prong-cycler {
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      padding: 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    
+    .cycle-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.15);
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+      transition: all 0.25s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    
+    .cycle-btn:hover {
+      background: var(--gold);
+      border-color: var(--gold);
+      color: var(--bg);
+    }
+    
+    .cycle-content {
+      flex: 1;
+      text-align: center;
+    }
+    
+    .cycle-visual {
+      width: 64px;
+      height: 64px;
+      margin: 0 auto 10px;
+      color: var(--gold);
+    }
+    
+    .cycle-name {
+      font-size: 1rem;
+      font-weight: 500;
+    }
+    
+    .cycle-detail {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      margin-top: 2px;
+    }
+    
+    .cycle-dots {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      margin-top: 12px;
+    }
+    
+    .cycle-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.2);
+      transition: all 0.3s ease;
+    }
+    
+    .cycle-dot.active {
+      background: var(--gold);
+      width: 18px;
+      border-radius: 3px;
+    }
+    
+    /* Diamond Shape Grid - Draggable */
+    .diamond-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    
+    .diamond-item {
+      aspect-ratio: 1;
+      background: var(--bg-card);
+      border: 2px solid transparent;
+      border-radius: 10px;
+      cursor: grab;
+      transition: all 0.25s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 10px;
+      user-select: none;
+      position: relative;
+    }
+    
+    .diamond-item:hover {
+      background: var(--bg-card-hover);
+      transform: scale(1.05);
+      border-color: rgba(201,169,98,0.3);
+    }
+    
+    .diamond-item.selected {
+      border-color: var(--gold);
+      background: rgba(201,169,98,0.1);
+    }
+    
+    .diamond-item.dragging {
+      opacity: 0.4;
+      cursor: grabbing;
+    }
+    
+    .diamond-item .gem-svg {
+      width: 44px;
+      height: 44px;
+      margin-bottom: 4px;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+    }
+    
+    .diamond-item.selected .gem-svg {
+      filter: drop-shadow(0 2px 8px rgba(201,169,98,0.4));
+    }
+    
+    .diamond-label {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-dim);
+    }
+    
+    .diamond-item.selected .diamond-label {
+      color: var(--text);
+    }
+    
+    .drag-hint {
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      margin-bottom: 20px;
+      opacity: 0.7;
+    }
+    
+    .drag-hint span {
+      animation: bounce 2s infinite;
+      display: inline-block;
+    }
+    
+    /* Carat Slider */
+    .carat-section {
+      margin-bottom: 20px;
+    }
+    
+    .carat-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 12px;
+    }
+    
+    .carat-value {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.3rem;
+      color: var(--gold);
+    }
+    
+    .slider-track {
+      position: relative;
+      height: 6px;
+      background: var(--bg-card);
+      border-radius: 3px;
+      margin-bottom: 8px;
+    }
+    
+    .slider-fill {
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      background: linear-gradient(90deg, var(--gold-dim), var(--gold));
+      border-radius: 3px;
+      transition: width 0.15s ease;
+    }
+    
+    .slider-thumb {
+      position: absolute;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 20px;
+      height: 20px;
+      background: var(--gold);
+      border-radius: 50%;
+      box-shadow: 0 2px 8px rgba(201,169,98,0.4);
+      pointer-events: none;
+      transition: left 0.15s ease;
+    }
+    
+    .slider-input {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+    
+    .slider-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.65rem;
+      color: var(--text-dim);
+    }
+    
+    /* Navigation */
+    .nav-row {
+      margin-top: auto;
+      display: flex;
+      gap: 10px;
+      padding-top: 20px;
+    }
+    
+    .nav-btn {
+      flex: 1;
+      padding: 14px;
+      border-radius: 10px;
+      font-family: 'Nunito Sans', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+    }
+    
+    .nav-btn.back {
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.15);
+      color: var(--text);
+    }
+    
+    .nav-btn.back:hover {
+      background: rgba(255,255,255,0.05);
+      border-color: rgba(255,255,255,0.25);
+    }
+    
+    .nav-btn.next {
+      background: var(--gold);
+      border: none;
+      color: var(--bg);
+    }
+    
+    .nav-btn.next:hover:not(:disabled) {
+      background: var(--gold-bright);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(201,169,98,0.3);
+    }
+    
+    .nav-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    
+    /* Summary */
+    .summary-card {
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+    
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 14px 18px;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    
+    .summary-row:last-child {
+      border-bottom: none;
+    }
+    
+    .summary-label {
+      color: var(--text-dim);
+      font-size: 0.85rem;
+    }
+    
+    .summary-value {
+      font-weight: 500;
+      font-size: 0.85rem;
+    }
+    
+    /* Lead Form */
+    .lead-form {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    
+    .form-field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    
+    .form-label {
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .form-input,
+    .form-textarea {
+      background: var(--bg-card);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px;
+      padding: 12px 14px;
+      font-family: 'Nunito Sans', sans-serif;
+      font-size: 0.9rem;
+      color: var(--text);
+      transition: all 0.25s ease;
+    }
+    
+    .form-input::placeholder,
+    .form-textarea::placeholder {
+      color: var(--text-dim);
+      opacity: 0.5;
+    }
+    
+    .form-input:focus,
+    .form-textarea:focus {
+      outline: none;
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(201,169,98,0.1);
+    }
+    
+    .form-textarea {
+      resize: vertical;
+      min-height: 70px;
+    }
+    
+    .submit-btn {
+      width: 100%;
+      padding: 16px;
+      background: var(--gold);
+      border: none;
+      border-radius: 10px;
+      color: var(--bg);
+      font-family: 'Nunito Sans', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-top: 4px;
+    }
+    
+    .submit-btn:hover:not(:disabled) {
+      background: var(--gold-bright);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(201,169,98,0.3);
+    }
+    
+    .submit-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    
+    .reset-btn {
+      width: 100%;
+      padding: 12px;
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      color: var(--text-dim);
+      font-family: 'Nunito Sans', sans-serif;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+    
+    .reset-btn:hover {
+      border-color: rgba(255,255,255,0.2);
+      color: var(--text);
+    }
+    
+    /* Success State */
+    .success-box {
+      text-align: center;
+      padding: 24px 0;
+      animation: slideUp 0.4s ease;
+    }
+    
+    .success-icon {
+      width: 56px;
+      height: 56px;
+      background: var(--gold);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+      font-size: 24px;
+      color: var(--bg);
+    }
+    
+    .success-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.4rem;
+      margin-bottom: 8px;
+    }
+    
+    .success-text {
+      font-size: 0.85rem;
+      color: var(--text-dim);
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+    
+    /* Responsive */
+    @media (max-width: 860px) {
+      .main {
+        grid-template-columns: 1fr;
+      }
+      .preview-area {
+        min-height: 55vh;
+        padding: 24px;
+      }
+      .config-panel {
+        border-left: none;
+        border-top: 1px solid rgba(255,255,255,0.06);
+      }
+      .ring-stage {
+        width: 260px;
+        height: 260px;
+      }
+      .header {
+        padding: 12px 20px;
+      }
+      .logo {
+        font-size: 1.1rem;
+        letter-spacing: 2px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  
+  <script type="text/babel">
+    const { useState } = React;
+    
+    // ===================== DATA =====================
+    
+    const RING_BASES = [
+      { id: 'solitaire', name: 'Solitaire', detail: 'Timeless single stone' },
+      { id: 'halo', name: 'Halo', detail: 'Surrounded by brilliance' },
+      { id: 'three-stone', name: 'Three Stone', detail: 'Past, present, future' },
+      { id: 'pave', name: 'Pavé', detail: 'Diamond-encrusted band' },
+      { id: 'cathedral', name: 'Cathedral', detail: 'Arched elegance' },
+      { id: 'bezel-set', name: 'Bezel Set', detail: 'Modern & protective' },
+      { id: 'hidden-halo', name: 'Hidden Halo', detail: 'Secret sparkle beneath' },
+      { id: 'split-shank', name: 'Split Shank', detail: 'Dramatic divided band' },
+    ];
+    
+    const PRONG_SETTINGS = [
+      { id: '4-prong', name: '4-Prong', detail: 'Classic, maximum light exposure' },
+      { id: '6-prong', name: '6-Prong', detail: 'Extra security & elegance' },
+      { id: 'bezel', name: 'Bezel', detail: 'Modern metal surround' },
+      { id: 'tension', name: 'Tension', detail: 'Floating, contemporary' },
+      { id: 'claw', name: 'Claw', detail: 'Dramatic, vintage appeal' },
+    ];
+    
+    const DIAMOND_SHAPES = [
+      { id: 'round', name: 'Round' },
+      { id: 'oval', name: 'Oval' },
+      { id: 'cushion', name: 'Cushion' },
+      { id: 'princess', name: 'Princess' },
+      { id: 'emerald', name: 'Emerald' },
+      { id: 'pear', name: 'Pear' },
+      { id: 'marquise', name: 'Marquise' },
+      { id: 'radiant', name: 'Radiant' },
+      { id: 'asscher', name: 'Asscher' },
+    ];
+    
+    const METALS = [
+      { id: 'yellow', name: '14K Yellow Gold', swatch: 'yellow' },
+      { id: 'white', name: '14K White Gold', swatch: 'white' },
+      { id: 'rose', name: '14K Rose Gold', swatch: 'rose' },
+      { id: 'platinum', name: 'Platinum', swatch: 'platinum' },
+    ];
+    
+    const CARATS = ['0.5', '0.75', '1.0', '1.25', '1.5', '1.75', '2.0', '2.5', '3.0'];
+    
+    // ===================== SVG COMPONENTS =====================
+    
+    // Realistic Diamond Shape SVGs with facets
+    const DiamondShapeSVG = ({ shape, size = 44 }) => {
+      const gradId = `gem-${shape}-${Math.random().toString(36).substr(2,5)}`;
+      
+      const shapes = {
+        round: (
+          <svg viewBox="0 0 100 100" className="gem-svg" style={{width: size, height: size}}>
+            <defs>
+              <radialGradient id={gradId} cx="30%" cy="30%" r="70%">
+                <stop offset="0%" stopColor="#ffffff"/>
+                <stop offset="30%" stopColor="#e8f4fc"/>
+                <stop offset="60%" stopColor="#c5e3f6"/>
+                <stop offset="100%" stopColor="#9dd1f1"/>
+              </radialGradient>
+            </defs>
+            <circle cx="50" cy="50" r="42" fill={`url(#${gradId})`} stroke="#b8d4e8" strokeWidth="1"/>
+            <ellipse cx="35" cy="35" rx="12" ry="8" fill="rgba(255,255,255,0.6)"/>
+            <line x1="50" y1="8" x2="50" y2="50" stroke="rgba(255,255,255,0.3)" strokeWidth="1"/>
+            <line x1="8" y1="50" x2="50" y2="50" stroke="rgba(255,255,255,0.2)" strokeWidth="1"/>
+            <line x1="50" y1="50" x2="85" y2="25" stroke="rgba(255,255,255,0.2)" strokeWidth="1"/>
+            <line x1="50" y1="50" x2="85" y2="75" stroke="rgba(255,255,255,0.15)" strokeWidth="1"/>
+          </svg>
+        ),
+        oval: (
+          <svg viewBox="0 0 100 100" className="gem-svg" style={{width: size, height: size}}>
+            <defs>
+              <radialGradient id={gradId} cx="30%" cy="30%" r="70%">
+                <stop offset="0%" stopColor="#ffffff"/>
+                <stop offset="30%" stopColor="#e8f4fc"/>
+                <stop offset="60%" stopColor="#c5e3f6"/>
+                <stop offset="100%" stopColor="#9dd1f1"/>
+              </radialGradient>
+            </defs>
+            <ellipse cx="50" cy="50" rx="42" ry="30" fill={`url(#${gradId})`} stroke="#b8d4e8" strokeWidth="1"/>
+            <ellipse cx="32" cy="40" rx="10" ry="6" fill="rgba(255,255,255,0.6)"/>
+            <line x1="50" y1="20" x2="50" y2="50" stroke="rgba(255,255,255,0.3)" strokeWidth="1"/>
+            <line x1="10" y1="50" x2="50" y2="50" stroke="rgba(255,255,255,0.2)" strokeWidth="1"/>
+          </svg>
+        ),
+        cushion: (
+          <svg viewBox="0 0 100 100" className="gem-svg" style={{width: size, height: size}}>
+            <defs>
+              <linearGradient id={gradId} x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#ffffff"/>
+                <stop offset="30%" stopColor="#e8f4fc"/>
+                <stop offset="70%" stopColor="#c5e3f6"/>
+                <stop offset="100%" stopColor="#9dd1f1"/>
+              </linearGradient>
+            </defs>
+            <rect x="10" y="10" width="80" height="80" rx="16" fill={`url(#${gradId})`} stroke="#b8d4e8" strokeWidth="1"/>
+            <rect x="22" y="22" width="20" height="14" rx="4" fill="rgba(255,255,255,0.5)"/>
+            <line x1="50" y1="10" x2="50" y2="90" stroke="rgba(255,255,255,0.2)" strokeWidth="1"/>
+            <line x1="10" y1="50" x2="90" y2="50" stroke="rgba(255,255,255,0.2)" strokeWidth="1"/>
+          </svg>
+        ),
+        princess: (
+          <svg viewBox="0 0 100 100" className="gem-svg" style={{width: size, height: size}}>
+            <defs>
+              <linearGradient id={gradId} x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#ffffff"/>
+                <stop offset="30%" stopColor="#e8f4fc"/>
+                <stop offset="70%" stopColor="#c5e3f6"/>
+                <stop offset="100%" stopColor="#9dd1f1"/>
+              </linearGradient>
+            </defs>
+            <rect x="12" y="12" width="76" height="76" fill={`url(#${gradId})`} stroke="#b8d4e8" strokeWidth="1"/>
+            <polygon points="20,20 35,20 27,35" fill="rgba(255,255,255,0.5)"/>
+            <line x1="12" y1="12" x2="88" y2="88" stroke="rgba(255,255,255,0.25)" strokeWidth="1"/>
+            <line x1="88" y1="12" x2="12" y2="88" stroke="rgba(255,255,255,0.25)" strokeWidth="1"/>
+            <line x1="50" y1="12" x2="50" y2="88" stroke="rgba(255,255,255,0.15)" strokeWidth="1"/>
+            <line x1="12" y1="50" x2="88" y2="50" stroke="rgba(255,255,255,0.15)" strokeWidth="1"/>
+          </svg>
+        ),
+        emerald: (
+          <svg viewBox="0 0 100 100" className="gem-svg" style={{width: size, height: size}}>
+            <defs>
+              <linearGradient id={gradId} x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#ffffff"/>
+                <stop offset="30%" stopColor="#e8f4fc"/>
+                <stop offset="70%" stopColor="#c5e3f6"/>
+                <stop offset="100%" stopColor="#9dd1f1"/>
+              </linearGradient>
+            </defs>
+            <polygon points="15,20 85,20 92,35 92,65 85,80 15,80 8,65 8,35" fill={`url(#${gradId})`} stroke="#b8d4e8" strokeWidth="1"/>
+            <rect x="20" y="28" width="22" height="10" fill="rgba(255,255,255,0.5)"/>
+            <line x1="50" y1="20" x2="50" y2="80" stroke="rgba(255,255,255,0.2)" strokeWidth="1"/>
+            <line x1="8" y1="50" x2="92" y2="50" stroke="rgba(255,255,255,0.2)" strokeWidth="1"/>
+            <rect x="25" y="35" width="50" height="30" fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="1"/>
+          </svg>
+        ),
+        pear: (
+          <svg viewBox="0 0 100 100" className="gem-svg" style={{width: size, height: size}}>
+            <defs>
+              <radialGradient id={gradId} cx="40%" cy="30%" r="60%">
+                <stop offset="0%" stopColor="#ffffff"/>
+                <stop offset="30%" stopColor="#e8f4fc"/>
+                <stop offset="70%" stopColor="#c5e3f6"/>
+                <stop offset="100%" stopColor="#9dd1f1"/>
+              </radialGradient>
+            </defs>
+            <path d="M50 8 Q85 45 70 70 Q58 92 50 92 Q42 92 30 70 Q15 45 50 8" fill={`url(#${gradId})`} stroke="#b8d4e8" strokeWidth="1"/>
+            <ellipse cx="40" cy="30" rx="8" ry="5" fill="rgba(255,255,255,0.5)"/>
+            <line x1="50" y1="8" x2="50" y2="92" stroke="rgba(255,255,255,0.2)" strokeWidth="1"/>
+          </svg>
+        ),
+        marquise: (
+          <svg viewBox="0 0 100 100" className="gem-svg" style={{width: size, height: size}}>
+            <defs>
+              <radialGradient id={gradId} cx="50%" cy="30%" r="60%">
+                <stop offset="0%" stopColor="#ffffff"/>
+                <stop offset="30%" stopColor="#e8f4fc"/>
+                <stop offset="70%" stopColor="#c5e3f6"/>
+                <stop offset="100%" stopColor="#9dd1f1"/>
+              </radialGradient>
+            </defs>
+            <ellipse cx="50" cy="50" rx="18" ry="42" fill={`url(#${gradId})`} stroke="#b8d4e8" strokeWidth="1"/>
+            <ellipse cx="44" cy="30" rx="6" ry="10" fill="rgba(255,255,255,0.5)"/>
+            <line x1="50" y1="8" x2="50" y2="92" stroke="rgba(255,255,255,0.25)" strokeWidth="1"/>
+            <line x1="32" y1="50" x2="68" y2="50" stroke="rgba(255,255,255,0.2)" strokeWidth="1"/>
+          </svg>
+        ),
+        radiant: (
+          <svg viewBox="0 0 100 100" className="gem-svg" style={{width: size, height: size}}>
+            <defs>
+              <linearGradient id={gradId} x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#ffffff"/>
+                <stop offset="30%" stopColor="#e8f4fc"/>
+                <stop offset="70%" stopColor="#c5e3f6"/>
+                <stop offset="100%" stopColor="#9dd1f1"/>
+              </linearGradient>
+            </defs>
+            <polygon points="18,10 82,10 92,25 92,75 82,90 18,90 8,75 8,25" fill={`url(#${gradId})`} stroke="#b8d4e8" strokeWidth="1"/>
+            <rect x="22" y="20" width="18" height="12" fill="rgba(255,255,255,0.5)"/>
+            <line x1="50" y1="10" x2="50" y2="90" stroke="rgba(255,255,255,0.2)" strokeWidth="1"/>
+            <line x1="8" y1="50" x2="92" y2="50" stroke="rgba(255,255,255,0.2)" strokeWidth="1"/>
+            <line x1="18" y1="10" x2="82" y2="90" stroke="rgba(255,255,255,0.12)" strokeWidth="1"/>
+            <line x1="82" y1="10" x2="18" y2="90" stroke="rgba(255,255,255,0.12)" strokeWidth="1"/>
+          </svg>
+        ),
+        asscher: (
+          <svg viewBox="0 0 100 100" className="gem-svg" style={{width: size, height: size}}>
+            <defs>
+              <linearGradient id={gradId} x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#ffffff"/>
+                <stop offset="30%" stopColor="#e8f4fc"/>
+                <stop offset="70%" stopColor="#c5e3f6"/>
+                <stop offset="100%" stopColor="#9dd1f1"/>
+              </linearGradient>
+            </defs>
+            <polygon points="20,10 80,10 90,20 90,80 80,90 20,90 10,80 10,20" fill={`url(#${gradId})`} stroke="#b8d4e8" strokeWidth="1"/>
+            <polygon points="30,20 70,20 78,30 78,70 70,80 30,80 22,70 22,30" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="1"/>
+            <polygon points="40,32 60,32 65,40 65,60 60,68 40,68 35,60 35,40" fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="1"/>
+            <rect x="24" y="24" width="14" height="10" fill="rgba(255,255,255,0.45)"/>
+          </svg>
+        ),
+      };
+      
+      return shapes[shape] || shapes.round;
+    };
+    
+    // Ring Base Icons
+    const BaseIconSVG = ({ type }) => {
+      const common = { fill: 'none', stroke: 'currentColor', strokeWidth: 2 };
+      
+      const icons = {
+        solitaire: (
+          <svg viewBox="0 0 48 48" {...common} className="base-icon">
+            <ellipse cx="24" cy="36" rx="16" ry="6"/>
+            <circle cx="24" cy="18" r="9"/>
+          </svg>
+        ),
+        halo: (
+          <svg viewBox="0 0 48 48" {...common} className="base-icon">
+            <ellipse cx="24" cy="36" rx="16" ry="6"/>
+            <circle cx="24" cy="18" r="7"/>
+            <circle cx="24" cy="18" r="12" strokeDasharray="3 2"/>
+          </svg>
+        ),
+        'three-stone': (
+          <svg viewBox="0 0 48 48" {...common} className="base-icon">
+            <ellipse cx="24" cy="36" rx="16" ry="6"/>
+            <circle cx="24" cy="18" r="7"/>
+            <circle cx="12" cy="24" r="4"/>
+            <circle cx="36" cy="24" r="4"/>
+          </svg>
+        ),
+        pave: (
+          <svg viewBox="0 0 48 48" {...common} className="base-icon">
+            <ellipse cx="24" cy="36" rx="16" ry="6"/>
+            <circle cx="24" cy="18" r="8"/>
+            <circle cx="12" cy="34" r="2" fill="currentColor"/>
+            <circle cx="18" cy="32" r="2" fill="currentColor"/>
+            <circle cx="30" cy="32" r="2" fill="currentColor"/>
+            <circle cx="36" cy="34" r="2" fill="currentColor"/>
+          </svg>
+        ),
+        cathedral: (
+          <svg viewBox="0 0 48 48" {...common} className="base-icon">
+            <ellipse cx="24" cy="38" rx="16" ry="5"/>
+            <path d="M12 34 Q24 18 36 34"/>
+            <circle cx="24" cy="14" r="6"/>
+          </svg>
+        ),
+        'bezel-set': (
+          <svg viewBox="0 0 48 48" {...common} className="base-icon">
+            <ellipse cx="24" cy="36" rx="16" ry="6"/>
+            <circle cx="24" cy="18" r="10" strokeWidth="4"/>
+          </svg>
+        ),
+        'hidden-halo': (
+          <svg viewBox="0 0 48 48" {...common} className="base-icon">
+            <ellipse cx="24" cy="36" rx="16" ry="6"/>
+            <circle cx="24" cy="18" r="8"/>
+            <ellipse cx="24" cy="26" rx="10" ry="4" strokeDasharray="2 2"/>
+          </svg>
+        ),
+        'split-shank': (
+          <svg viewBox="0 0 48 48" {...common} className="base-icon">
+            <path d="M8 38 Q14 34 18 22"/>
+            <path d="M8 32 Q14 28 18 22"/>
+            <path d="M40 38 Q34 34 30 22"/>
+            <path d="M40 32 Q34 28 30 22"/>
+            <circle cx="24" cy="16" r="8"/>
+          </svg>
+        ),
+      };
+      
+      return icons[type] || icons.solitaire;
+    };
+    
+    // Prong Setting Icons
+    const ProngIconSVG = ({ type }) => {
+      const common = { fill: 'none', stroke: 'currentColor', strokeWidth: 2 };
+      
+      const icons = {
+        '4-prong': (
+          <svg viewBox="0 0 64 64" {...common} className="cycle-visual">
+            <circle cx="32" cy="32" r="16"/>
+            <line x1="32" y1="8" x2="32" y2="16" strokeWidth="3"/>
+            <line x1="56" y1="32" x2="48" y2="32" strokeWidth="3"/>
+            <line x1="32" y1="56" x2="32" y2="48" strokeWidth="3"/>
+            <line x1="8" y1="32" x2="16" y2="32" strokeWidth="3"/>
+          </svg>
+        ),
+        '6-prong': (
+          <svg viewBox="0 0 64 64" {...common} className="cycle-visual">
+            <circle cx="32" cy="32" r="16"/>
+            <line x1="32" y1="6" x2="32" y2="16" strokeWidth="3"/>
+            <line x1="52" y1="14" x2="44" y2="22" strokeWidth="3"/>
+            <line x1="52" y1="50" x2="44" y2="42" strokeWidth="3"/>
+            <line x1="32" y1="58" x2="32" y2="48" strokeWidth="3"/>
+            <line x1="12" y1="50" x2="20" y2="42" strokeWidth="3"/>
+            <line x1="12" y1="14" x2="20" y2="22" strokeWidth="3"/>
+          </svg>
+        ),
+        bezel: (
+          <svg viewBox="0 0 64 64" {...common} className="cycle-visual">
+            <circle cx="32" cy="32" r="20" strokeWidth="6"/>
+            <circle cx="32" cy="32" r="12"/>
+          </svg>
+        ),
+        tension: (
+          <svg viewBox="0 0 64 64" {...common} className="cycle-visual">
+            <path d="M8 48 Q20 44 26 32" strokeWidth="4" strokeLinecap="round"/>
+            <path d="M56 48 Q44 44 38 32" strokeWidth="4" strokeLinecap="round"/>
+            <circle cx="32" cy="32" r="10"/>
+          </svg>
+        ),
+        claw: (
+          <svg viewBox="0 0 64 64" {...common} className="cycle-visual">
+            <circle cx="32" cy="32" r="14"/>
+            <path d="M32 6 L32 18" strokeWidth="3" strokeLinecap="round"/>
+            <path d="M50 14 L42 24" strokeWidth="3" strokeLinecap="round"/>
+            <path d="M58 32 L46 32" strokeWidth="3" strokeLinecap="round"/>
+            <path d="M50 50 L42 40" strokeWidth="3" strokeLinecap="round"/>
+            <path d="M32 58 L32 46" strokeWidth="3" strokeLinecap="round"/>
+            <path d="M14 50 L22 40" strokeWidth="3" strokeLinecap="round"/>
+            <path d="M6 32 L18 32" strokeWidth="3" strokeLinecap="round"/>
+            <path d="M14 14 L22 24" strokeWidth="3" strokeLinecap="round"/>
+          </svg>
+        ),
+      };
+      
+      return icons[type] || icons['4-prong'];
+    };
+    
+    // Full Ring Preview Canvas
+    const RingPreview = ({ config, celebrating }) => {
+      const { base, prong, diamond, metal, carat } = config;
+      
+      const metalColors = {
+        yellow: { light: '#f7e18c', main: '#d4af37', dark: '#aa8c2c' },
+        white: { light: '#ffffff', main: '#e8e8e8', dark: '#c0c0c0' },
+        rose: { light: '#f5c6c6', main: '#e5a9a9', dark: '#c88888' },
+        platinum: { light: '#f8f8f8', main: '#e0e0e0', dark: '#b8b8b8' },
+      };
+      
+      const colors = metalColors[metal] || metalColors.yellow;
+      const caratIndex = CARATS.indexOf(carat);
+      const gemScale = 0.7 + (caratIndex * 0.06);
+      
+      return (
+        <svg viewBox="0 0 200 200" className={`ring-canvas ${celebrating ? 'celebrating' : ''}`}>
+          <defs>
+            <linearGradient id="metalGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor={colors.light}/>
+              <stop offset="45%" stopColor={colors.main}/>
+              <stop offset="100%" stopColor={colors.dark}/>
+            </linearGradient>
+            <radialGradient id="gemGrad" cx="30%" cy="30%" r="70%">
+              <stop offset="0%" stopColor="#ffffff"/>
+              <stop offset="30%" stopColor="#e8f4fc"/>
+              <stop offset="70%" stopColor="#c5e3f6"/>
+              <stop offset="100%" stopColor="#9dd1f1"/>
+            </radialGradient>
+            <filter id="glow">
+              <feGaussianBlur stdDeviation="2" result="blur"/>
+              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+          </defs>
+          
+          {/* Band based on style */}
+          <g stroke="none">
+            {base === 'solitaire' && (
+              <ellipse cx="100" cy="150" rx="52" ry="16" fill="url(#metalGrad)"/>
+            )}
+            {base === 'halo' && (
+              <>
+                <ellipse cx="100" cy="150" rx="52" ry="16" fill="url(#metalGrad)"/>
+                {[...Array(16)].map((_, i) => {
+                  const a = (i * 22.5) * Math.PI / 180;
+                  return <circle key={i} cx={100 + Math.cos(a)*32} cy={90 + Math.sin(a)*32} r="4" fill="#fff" filter="url(#glow)"/>;
+                })}
+              </>
+            )}
+            {base === 'three-stone' && (
+              <>
+                <ellipse cx="100" cy="150" rx="52" ry="16" fill="url(#metalGrad)"/>
+                <ellipse cx="58" cy="115" rx="14" ry="14" fill="url(#gemGrad)" filter="url(#glow)"/>
+                <ellipse cx="142" cy="115" rx="14" ry="14" fill="url(#gemGrad)" filter="url(#glow)"/>
+              </>
+            )}
+            {base === 'pave' && (
+              <>
+                <ellipse cx="100" cy="150" rx="52" ry="16" fill="url(#metalGrad)"/>
+                {[...Array(12)].map((_, i) => {
+                  const a = (i * 14 + 100) * Math.PI / 180;
+                  return <circle key={i} cx={100 + Math.cos(a)*48} cy={150 + Math.sin(a)*14} r="3" fill="#fff" opacity="0.85"/>;
+                })}
+              </>
+            )}
+            {base === 'cathedral' && (
+              <>
+                <ellipse cx="100" cy="152" rx="52" ry="14" fill="url(#metalGrad)"/>
+                <path d="M55 145 Q100 100 145 145" fill="none" stroke="url(#metalGrad)" strokeWidth="8" strokeLinecap="round"/>
+              </>
+            )}
+            {base === 'bezel-set' && (
+              <>
+                <ellipse cx="100" cy="150" rx="52" ry="16" fill="url(#metalGrad)"/>
+                <circle cx="100" cy="90" r="30" fill="none" stroke={colors.main} strokeWidth="8"/>
+              </>
+            )}
+            {base === 'hidden-halo' && (
+              <>
+                <ellipse cx="100" cy="150" rx="52" ry="16" fill="url(#metalGrad)"/>
+                {[...Array(10)].map((_, i) => {
+                  const a = (i * 36 + 180) * Math.PI / 180;
+                  return <circle key={i} cx={100 + Math.cos(a)*24} cy={110 + Math.sin(a)*10} r="3" fill="#fff" opacity="0.7"/>;
+                })}
+              </>
+            )}
+            {base === 'split-shank' && (
+              <>
+                <path d="M48 155 Q68 148 82 105" fill="none" stroke="url(#metalGrad)" strokeWidth="8" strokeLinecap="round"/>
+                <path d="M48 145 Q68 138 82 105" fill="none" stroke="url(#metalGrad)" strokeWidth="8" strokeLinecap="round"/>
+                <path d="M152 155 Q132 148 118 105" fill="none" stroke="url(#metalGrad)" strokeWidth="8" strokeLinecap="round"/>
+                <path d="M152 145 Q132 138 118 105" fill="none" stroke="url(#metalGrad)" strokeWidth="8" strokeLinecap="round"/>
+              </>
+            )}
+          </g>
+          
+          {/* Setting head (if not bezel-set base) */}
+          {base !== 'bezel-set' && (
+            <circle cx="100" cy="90" r="28" fill="url(#metalGrad)"/>
+          )}
+          
+          {/* Prong details */}
+          {prong === '4-prong' && (
+            <g stroke={colors.main} strokeWidth="4" strokeLinecap="round">
+              <line x1="100" y1="58" x2="100" y2="68"/>
+              <line x1="132" y1="90" x2="122" y2="90"/>
+              <line x1="100" y1="122" x2="100" y2="112"/>
+              <line x1="68" y1="90" x2="78" y2="90"/>
+            </g>
+          )}
+          {prong === '6-prong' && (
+            <g stroke={colors.main} strokeWidth="4" strokeLinecap="round">
+              <line x1="100" y1="56" x2="100" y2="66"/>
+              <line x1="126" y1="64" x2="118" y2="72"/>
+              <line x1="126" y1="116" x2="118" y2="108"/>
+              <line x1="100" y1="124" x2="100" y2="114"/>
+              <line x1="74" y1="116" x2="82" y2="108"/>
+              <line x1="74" y1="64" x2="82" y2="72"/>
+            </g>
+          )}
+          {prong === 'tension' && (
+            <g stroke="url(#metalGrad)" strokeWidth="10" strokeLinecap="round">
+              <path d="M48 150 Q72 142 86 90" fill="none"/>
+              <path d="M152 150 Q128 142 114 90" fill="none"/>
+            </g>
+          )}
+          {prong === 'claw' && (
+            <g stroke={colors.main} strokeWidth="3" strokeLinecap="round">
+              {[...Array(8)].map((_, i) => {
+                const a = (i * 45) * Math.PI / 180;
+                const x1 = 100 + Math.cos(a) * 22;
+                const y1 = 90 + Math.sin(a) * 22;
+                const x2 = 100 + Math.cos(a) * 34;
+                const y2 = 90 + Math.sin(a) * 34;
+                return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2}/>;
+              })}
+            </g>
+          )}
+          
+          {/* Center stone */}
+          {diamond && (
+            <g transform={`translate(100,90) scale(${gemScale})`} filter="url(#glow)">
+              <g transform="translate(-50,-50)">
+                {diamond === 'round' && <circle cx="50" cy="50" r="24" fill="url(#gemGrad)"/>}
+                {diamond === 'oval' && <ellipse cx="50" cy="50" rx="26" ry="18" fill="url(#gemGrad)"/>}
+                {diamond === 'cushion' && <rect x="26" y="26" width="48" height="48" rx="10" fill="url(#gemGrad)"/>}
+                {diamond === 'princess' && <rect x="28" y="28" width="44" height="44" fill="url(#gemGrad)"/>}
+                {diamond === 'emerald' && <rect x="22" y="32" width="56" height="36" rx="3" fill="url(#gemGrad)"/>}
+                {diamond === 'pear' && <path d="M50 18 Q78 45 65 68 Q56 85 50 85 Q44 85 35 68 Q22 45 50 18" fill="url(#gemGrad)"/>}
+                {diamond === 'marquise' && <ellipse cx="50" cy="50" rx="12" ry="28" fill="url(#gemGrad)"/>}
+                {diamond === 'radiant' && <polygon points="30,22 70,22 78,32 78,68 70,78 30,78 22,68 22,32" fill="url(#gemGrad)"/>}
+                {diamond === 'asscher' && <polygon points="30,20 70,20 80,30 80,70 70,80 30,80 20,70 20,30" fill="url(#gemGrad)"/>}
+              </g>
+            </g>
+          )}
+        </svg>
+      );
+    };
+    
+    // Sparkle effect
+    const Sparkles = ({ active }) => {
+      if (!active) return null;
+      const spots = [
+        {top:'18%',left:'42%',delay:'0s'},
+        {top:'22%',left:'58%',delay:'0.2s'},
+        {top:'35%',left:'35%',delay:'0.4s'},
+        {top:'32%',left:'65%',delay:'0.1s'},
+        {top:'48%',left:'50%',delay:'0.3s'},
+      ];
+      return (
+        <div className="sparkles">
+          {spots.map((s,i) => (
+            <div key={i} className="sparkle" style={{top:s.top,left:s.left,animation:`sparkle 1.5s ${s.delay} infinite`}}/>
+          ))}
+        </div>
+      );
+    };
+    
+    // Lead capture form
+    const LeadForm = ({ config, onReset }) => {
+      const [form, setForm] = useState({ name:'', email:'', phone:'', message:'' });
+      const [status, setStatus] = useState('idle');
+      
+      const specs = {
+        base: RING_BASES.find(b => b.id === config.base)?.name,
+        prong: PRONG_SETTINGS.find(p => p.id === config.prong)?.name,
+        diamond: DIAMOND_SHAPES.find(d => d.id === config.diamond)?.name,
+        carat: config.carat + ' ct',
+        metal: METALS.find(m => m.id === config.metal)?.name,
+      };
+      
+      const handleSubmit = async (e) => {
+        e.preventDefault();
+        setStatus('submitting');
+        
+        try {
+          await fetch('/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({
+              'form-name': 'ring-builder',
+              ...form,
+              ...specs,
+            }).toString(),
+          });
+          setStatus('success');
+        } catch {
+          // Fallback email
+          const subject = encodeURIComponent('Ring Builder Inquiry');
+          const body = encodeURIComponent(
+            `Name: ${form.name}\nEmail: ${form.email}\nPhone: ${form.phone}\n\n` +
+            `Ring Specs:\n- Base: ${specs.base}\n- Setting: ${specs.prong}\n- Diamond: ${specs.diamond}\n- Carat: ${specs.carat}\n- Metal: ${specs.metal}\n\n` +
+            `Message: ${form.message || 'None'}`
+          );
+          window.open(`mailto:info@gabriellaamoura.com?subject=${subject}&body=${body}`);
+          setStatus('success');
+        }
+      };
+      
+      if (status === 'success') {
+        return (
+          <div className="success-box">
+            <div className="success-icon">✓</div>
+            <h3 className="success-title">Inquiry Sent!</h3>
+            <p className="success-text">Thank you! We'll review your dream ring and reach out within 24 hours with options tailored for you.</p>
+            <button className="reset-btn" onClick={onReset}>Design Another Ring</button>
+          </div>
+        );
+      }
+      
+      return (
+        <form className="lead-form" onSubmit={handleSubmit} data-netlify="true" name="ring-builder">
+          <input type="hidden" name="form-name" value="ring-builder"/>
+          <input type="hidden" name="base" value={specs.base}/>
+          <input type="hidden" name="prong" value={specs.prong}/>
+          <input type="hidden" name="diamond" value={specs.diamond}/>
+          <input type="hidden" name="carat" value={specs.carat}/>
+          <input type="hidden" name="metal" value={specs.metal}/>
+          
+          <div className="form-field">
+            <label className="form-label">Name *</label>
+            <input className="form-input" name="name" required placeholder="Your name" value={form.name} onChange={e => setForm({...form, name: e.target.value})}/>
+          </div>
+          <div className="form-field">
+            <label className="form-label">Email *</label>
+            <input className="form-input" name="email" type="email" required placeholder="you@email.com" value={form.email} onChange={e => setForm({...form, email: e.target.value})}/>
+          </div>
+          <div className="form-field">
+            <label className="form-label">Phone</label>
+            <input className="form-input" name="phone" placeholder="(555) 123-4567" value={form.phone} onChange={e => setForm({...form, phone: e.target.value})}/>
+          </div>
+          <div className="form-field">
+            <label className="form-label">Additional Details</label>
+            <textarea className="form-textarea" name="message" placeholder="Timeline, budget, special requests..." value={form.message} onChange={e => setForm({...form, message: e.target.value})}/>
+          </div>
+          
+          <button type="submit" className="submit-btn" disabled={status === 'submitting'}>
+            {status === 'submitting' ? 'Sending...' : 'Submit Inquiry'}
+          </button>
+          <button type="button" className="reset-btn" onClick={onReset}>Start Over</button>
+        </form>
+      );
+    };
+    
+    // ===================== MAIN APP =====================
+    
+    const App = () => {
+      const [step, setStep] = useState(1);
+      const [config, setConfig] = useState({
+        base: null,
+        prong: '4-prong',
+        diamond: null,
+        metal: 'yellow',
+        carat: '1.0',
+      });
+      const [prongIdx, setProngIdx] = useState(0);
+      const [dragging, setDragging] = useState(null);
+      const [dropHover, setDropHover] = useState(false);
+      const [celebrating, setCelebrating] = useState(false);
+      
+      const set = (k, v) => {
+        setConfig(prev => ({...prev, [k]: v}));
+        if (k === 'diamond' && v) {
+          setCelebrating(true);
+          setTimeout(() => setCelebrating(false), 500);
+        }
+      };
+      
+      const cycleProng = (dir) => {
+        const next = dir === 1
+          ? (prongIdx + 1) % PRONG_SETTINGS.length
+          : (prongIdx - 1 + PRONG_SETTINGS.length) % PRONG_SETTINGS.length;
+        setProngIdx(next);
+        set('prong', PRONG_SETTINGS[next].id);
+      };
+      
+      const canNext = () => {
+        if (step === 1) return config.base !== null;
+        if (step === 3) return config.diamond !== null;
+        return true;
+      };
+      
+      const stepNames = ['Style', 'Setting', 'Diamond', 'Submit'];
+      
+      const title = () => {
+        const parts = [];
+        if (config.diamond) parts.push(DIAMOND_SHAPES.find(d=>d.id===config.diamond)?.name);
+        if (config.base) parts.push(RING_BASES.find(b=>b.id===config.base)?.name);
+        return parts.length ? parts.join(' ') : 'Your Ring';
+      };
+      
+      // Drag handlers
+      const onDragStart = (e, shape) => { setDragging(shape); e.dataTransfer.effectAllowed = 'move'; };
+      const onDragEnd = () => { setDragging(null); setDropHover(false); };
+      const onDragOver = (e) => { e.preventDefault(); setDropHover(true); };
+      const onDragLeave = () => setDropHover(false);
+      const onDrop = (e) => { e.preventDefault(); if (dragging) set('diamond', dragging); setDragging(null); setDropHover(false); };
+      
+      return (
+        <div className="app">
+          <header className="header">
+            <div className="logo">Ring Builder</div>
+            <div className="progress">
+              <div className="progress-track">
+                {[1,2,3,4].map(s => (
+                  <div key={s} className={`progress-segment ${s===step?'active':''} ${s<step?'done':''}`}/>
+                ))}
+              </div>
+              <span className="progress-text">{stepNames[step-1]}</span>
+            </div>
+          </header>
+          
+          <main className="main">
+            <div className="preview-area">
+              <div
+                className={`ring-stage ${dragging ? 'drag-over' : ''}`}
+                onDragOver={step===3 ? onDragOver : undefined}
+                onDragLeave={step===3 ? onDragLeave : undefined}
+                onDrop={step===3 ? onDrop : undefined}
+              >
+                {step === 3 && <div className={`drop-target ${dragging?'visible':''} ${dropHover?'hovering':''}`}/>}
+                <Sparkles active={celebrating}/>
+                <RingPreview config={config} celebrating={celebrating}/>
+              </div>
+              <div className="preview-info">
+                <h2 className="preview-title">{title()}</h2>
+                <div className="preview-tags">
+                  <span className="preview-tag">{METALS.find(m=>m.id===config.metal)?.name}</span>
+                  {config.diamond && <span className="preview-tag">{config.carat} ct</span>}
+                  {config.prong && <span className="preview-tag">{PRONG_SETTINGS.find(p=>p.id===config.prong)?.name}</span>}
+                </div>
+              </div>
+            </div>
+            
+            <div className="config-panel" key={step}>
+              {/* STEP 1: Ring Base + Metal */}
+              {step === 1 && (
+                <>
+                  <div className="step-intro">
+                    <span className="step-badge">Step 1 of 4</span>
+                    <h2 className="step-title">Choose Your Style</h2>
+                    <p className="step-desc">Select a ring setting style and metal type to begin.</p>
+                  </div>
+                  
+                  <div className="section-label">Ring Style</div>
+                  <div className="base-grid">
+                    {RING_BASES.map(b => (
+                      <div key={b.id} className={`base-card ${config.base===b.id?'selected':''}`} onClick={() => set('base', b.id)}>
+                        <BaseIconSVG type={b.id}/>
+                        <div className="base-name">{b.name}</div>
+                        <div className="base-detail">{b.detail}</div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <div className="section-label">Metal Type</div>
+                  <div className="metal-row">
+                    {METALS.map(m => (
+                      <div key={m.id} className={`metal-swatch ${config.metal===m.id?'selected':''}`} onClick={() => set('metal', m.id)}>
+                        <div className={`swatch-circle ${m.swatch}`}/>
+                        <span className="swatch-label">{m.name.replace('14K ','')}</span>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+              
+              {/* STEP 2: Prong Setting */}
+              {step === 2 && (
+                <>
+                  <div className="step-intro">
+                    <span className="step-badge">Step 2 of 4</span>
+                    <h2 className="step-title">Select Your Setting</h2>
+                    <p className="step-desc">The prong setting secures your diamond and affects how it catches light.</p>
+                  </div>
+                  
+                  <div className="prong-cycler">
+                    <button className="cycle-btn" onClick={() => cycleProng(-1)}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6"/></svg>
+                    </button>
+                    <div className="cycle-content">
+                      <ProngIconSVG type={PRONG_SETTINGS[prongIdx].id}/>
+                      <div className="cycle-name">{PRONG_SETTINGS[prongIdx].name}</div>
+                      <div className="cycle-detail">{PRONG_SETTINGS[prongIdx].detail}</div>
+                      <div className="cycle-dots">
+                        {PRONG_SETTINGS.map((_,i) => <div key={i} className={`cycle-dot ${i===prongIdx?'active':''}`}/>)}
+                      </div>
+                    </div>
+                    <button className="cycle-btn" onClick={() => cycleProng(1)}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6"/></svg>
+                    </button>
+                  </div>
+                </>
+              )}
+              
+              {/* STEP 3: Diamond Shape + Size */}
+              {step === 3 && (
+                <>
+                  <div className="step-intro">
+                    <span className="step-badge">Step 3 of 4</span>
+                    <h2 className="step-title">Choose Your Diamond</h2>
+                    <p className="step-desc">Drag your preferred shape onto the ring or click to select.</p>
+                  </div>
+                  
+                  <div className="section-label">Diamond Shape</div>
+                  <div className="diamond-grid">
+                    {DIAMOND_SHAPES.map(d => (
+                      <div
+                        key={d.id}
+                        className={`diamond-item ${config.diamond===d.id?'selected':''} ${dragging===d.id?'dragging':''}`}
+                        draggable
+                        onDragStart={(e) => onDragStart(e, d.id)}
+                        onDragEnd={onDragEnd}
+                        onClick={() => set('diamond', d.id)}
+                      >
+                        <DiamondShapeSVG shape={d.id}/>
+                        <span className="diamond-label">{d.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="drag-hint"><span>↑</span> Drag onto ring or tap to select</p>
+                  
+                  <div className="section-label">Carat Size</div>
+                  <div className="carat-section">
+                    <div className="carat-header">
+                      <span></span>
+                      <span className="carat-value">{config.carat} ct</span>
+                    </div>
+                    <div className="slider-track">
+                      <div className="slider-fill" style={{width: `${(CARATS.indexOf(config.carat) / (CARATS.length-1)) * 100}%`}}/>
+                      <div className="slider-thumb" style={{left: `${(CARATS.indexOf(config.carat) / (CARATS.length-1)) * 100}%`}}/>
+                      <input
+                        type="range"
+                        className="slider-input"
+                        min="0"
+                        max={CARATS.length - 1}
+                        value={CARATS.indexOf(config.carat)}
+                        onChange={(e) => set('carat', CARATS[e.target.value])}
+                      />
+                    </div>
+                    <div className="slider-labels">
+                      <span>0.5ct</span>
+                      <span>1.5ct</span>
+                      <span>3.0ct</span>
+                    </div>
+                  </div>
+                </>
+              )}
+              
+              {/* STEP 4: Summary + Form */}
+              {step === 4 && (
+                <>
+                  <div className="step-intro">
+                    <span className="step-badge">Complete</span>
+                    <h2 className="step-title">Your Dream Ring</h2>
+                    <p className="step-desc">Review your configuration and submit your inquiry. We'll find the perfect match.</p>
+                  </div>
+                  
+                  <div className="summary-card">
+                    <div className="summary-row"><span className="summary-label">Style</span><span className="summary-value">{RING_BASES.find(b=>b.id===config.base)?.name}</span></div>
+                    <div className="summary-row"><span className="summary-label">Setting</span><span className="summary-value">{PRONG_SETTINGS.find(p=>p.id===config.prong)?.name}</span></div>
+                    <div className="summary-row"><span className="summary-label">Diamond</span><span className="summary-value">{DIAMOND_SHAPES.find(d=>d.id===config.diamond)?.name}</span></div>
+                    <div className="summary-row"><span className="summary-label">Carat</span><span className="summary-value">{config.carat} ct</span></div>
+                    <div className="summary-row"><span className="summary-label">Metal</span><span className="summary-value">{METALS.find(m=>m.id===config.metal)?.name}</span></div>
+                  </div>
+                  
+                  <LeadForm config={config} onReset={() => setStep(1)}/>
+                </>
+              )}
+              
+              {/* Nav */}
+              {step < 4 && (
+                <div className="nav-row">
+                  {step > 1 && <button className="nav-btn back" onClick={() => setStep(step-1)}>Back</button>}
+                  <button className="nav-btn next" onClick={() => setStep(step+1)} disabled={!canNext()}>
+                    {step === 3 ? 'Review' : 'Continue'}
+                  </button>
+                </div>
+              )}
+            </div>
+          </main>
+        </div>
+      );
+    };
+    
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
